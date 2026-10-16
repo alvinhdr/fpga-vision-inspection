@@ -1,0 +1,66 @@
+# Vivado / Vitis generated files
+.Xil/
+*.cache/
+*.runs/
+*.gen/
+*.sim/
+*.hw/
+*.ip_user_files/
+*.srcs/
+*.jou
+*.log
+*.str
+*.pb
+*.wdb
+xsim.dir/
+webtalk*
+vivado*.backup.*
+hs_err_pid*
+.vitis/
+.metadata/
+.analytics
+vitis_ws/
+workspace/
+build/
+out/
+
+# Bitstreams (use GitHub Releases instead)
+*.bit
+*.bin
+*.xsa
+*.ltx
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Big ML data and checkpoints
+ml/data/
+*.pt
+*.pth
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.assistant/settings.local.json
+
+# Vivado runtime leftovers
+dfx_runtime.txt
+
+# Large generated test vectors (regenerate with ml/export.py)
+ml/export/vec_1000_*
+
+# Vivado writes this into the folder it is started from
+clockInfo.txt
+
+# This project: big recorded data stays outside git (small samples go in data/sample/)
+data/raw/
+data/runs/*.avi
+data/runs/*.mp4
+*.mp4
+*.avi
+.venv/
