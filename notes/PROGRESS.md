@@ -1,11 +1,11 @@
 # PROGRESS
 
 ## Current milestone
-**M0 done (2026-10-16), tagged `m0-done`.** Next: **M1 - camera setup and data capture** (needs the user at home: DroidCam on the phone, stand, lamp, bolts, black paper/cloth). Board return: 2026-10-22.
+**M0 done (2026-10-16), tagged `m0-done`. B1 done (2026-10-18). Now M1 - data capture.** Board return: 2026-10-22.
 
 ## Board time
 - Board: Digilent Zybo Z7-10 (borrowed). **Return date: Thursday 2026-10-22** (user, 2026-10-16). Board sessions must happen 16–21 Oct.
-- Board hours used: 0. Board sessions done: none.
+- Board hours used: about 1.0 (B1: 10:15-11:13 on 2026-10-18, user's start time + system clock). Board sessions done: B1.
 - Old project's SD card (Edge AI BOOT.bin): user still has it somewhere, will look for it. Not needed for B1 if the M0 pass-through build is programmed over JTAG.
 
 ## Order of work (by milestone, no fixed days; board returns 2026-10-22)
@@ -57,6 +57,10 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - **Size at 25 cm phone height:** bolt (about 10 mm) = 18 x 48 px (T=60, area 289 px) -> about 0.21 mm per pixel. Threshold 40 vs 100 changes the length by about 4 px (8 %) because the edges are soft -> the final accuracy needs more pixels: use the phone zoom (IP Webcam web page) or get closer; fix exposure/focus.
 - A white object (stand/lamp arm) is in the top-right of the picture: keep it outside the inspection window.
 - Old DroidCam clients are still installed (classic 6.5.3 and new 7.2.1); not used now.
+
+- **Phone at about 17 cm (lowest the holder goes), frame `hdmi_screen_003_17cm.png`:** bolt about 60-70 px long (about 0.15 mm per px), sharp. Threshold 60+ is clean; threshold 40 gives about 30 mat-speckle blobs of 30-70 px (mat is fuzzy) -> use T >= 60 and/or the 3x3 filter later. At T >= 60 the bolt head separates from the shank as two blobs -> fine for moments/bbox (no connected components needed).
+- Stand arm at the top right of the picture (x about 900-1050, y 0-400): inspection window must stay left of x = 880 or the arm must be turned away. Default window candidate: about 400 x 300 centred at (640, 360) -> x 440..839, y 210..509 (decide in M2).
+- Board is NOT needed for frame capture (screen grab); capture sessions can continue without it. Board needed again for B2.
 
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
