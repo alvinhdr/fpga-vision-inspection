@@ -75,6 +75,12 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - Offline (T=120 dark / 180 bright): good bolts L_px median 71.0-73.6 (MAD 1.8-3.1); bad_d 84.3, bad_c 104.5, bad_b 149.3, bad_a 194.9 -> separable by length. 3-frame burst noise: median 1.33 px. Provisional k = 0.137 mm/px (from good = 10 mm).
 - Problems found: (1) good parts only in dark frames, bad parts only in bright frames -> confounded, re-capture all parts in ONE locked lighting; (2) shiny cylinders: W_px measures the highlight stripe (about 10 px), not the real width; (3) fixed dust grains on the mat (679,218) and others -> clean the mat with tape before B2; (4) NVIDIA may send "limited range" RGB (16-235) over HDMI for 720p -> check/set "Full" range before B2, otherwise the board sees other gray values than the screen grab.
 
+## Re-capture s2 (started 2026-10-18 about 12:50, paused by the user)
+- Board output screen had vanished (board design lost, probably a power cycle): fixed by re-programming `build/inspect.bit` (xsdb `program.tcl bit`). **Rule: if Windows loses the 1280x720 second screen, re-program.**
+- Camera state now: lamp lowered from full, picture mean gray about 35-38 (mat window p99.9 about 117, shiny parts about 250), steady over 5 s. IP Webcam exposure lock URL = `/settings/exposure_lock?set=on` (NO trailing dot; `?set=off` to unlock). Not yet confirmed locked.
+- Ruler seen in the picture (red translucent 30 cm ruler at the bottom edge): numbers 0..10 cm at x = 578..1166 -> about 58.8 px per cm -> about 0.170 mm/px at the current phone height. The phone height was probably different in s1 (good bolt = 73 px equivalent length there), so **the ruler frame must be taken in the SAME setup as the part frames**. The mm tick lines were cut off by the picture edge: move the ruler up so its tick edge is fully visible.
+- Plan for s2 (`py/grab_hdmi.py --session s2`): empty x5, ruler x2, bolt_good_01..05 x5 each, bad_a..d x5 each. Do not touch phone/stand/lamp during the session.
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
