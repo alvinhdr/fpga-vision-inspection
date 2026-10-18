@@ -1,7 +1,7 @@
 # PROGRESS
 
 ## Current milestone
-**M0 done (2026-10-16), tagged `m0-done`. B1 done (2026-10-18). Now M1 - data capture.** Board return: 2026-10-22.
+**M2 - spec + golden model (in progress, 2026-10-18).** Done: `docs/MEASUREMENT.md`, `py/golden.py`, `py/check_opencv.py`, `py/measure.py`; golden = OpenCV on all 285 frames. Waiting for: user review of MEASUREMENT.md (plain summary given in chat), AI-layer decision, re-capture in one locked lighting + ruler-in-picture calibration frame. Then tag `m2-done` and start M3+M4 (RTL). Board return 2026-10-22.
 
 ## Board time
 - Board: Digilent Zybo Z7-10 (borrowed). **Return date: Thursday 2026-10-22** (user, 2026-10-16). Board sessions must happen 16–21 Oct.
@@ -68,6 +68,12 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - 2026-10-18 later: session `s1` now 285 frames: empty 21, bolt_good_01..05 (27/33/27/27/30), bad_a 30, bad_b 27, bad_c 30, bad_d 33 (other bolt/screw types, ruler lengths still to be measured). **Two brightness regimes in one session:** first 147 frames dark (mean gray about 20-37, mat p99 about 49), later 138 frames bright (mean about 52-64, mat p99 about 118, p99.9 about 141, parts up to 253). Fixed threshold 80 is clean on the dark set but marks about 65,000 mat pixels on the bright set; 150+ is needed there. -> strong evidence for exposure lock AND the Otsu auto-threshold (Standard tier, M6.3): record it in RESULTS. The bright set is a free "lighting change" test set. Cause of the change not yet confirmed by the user (lamp/room light/auto exposure).
 
 - Parts table written: `data/parts.csv` (user ruler estimates 2026-10-18: good bolt about 10 mm, bad_a about 30, bad_b about 25, bad_c 15, bad_d 13 mm; uncertainty 1-3 mm). Picture of all types: `data/photos/part_types_s1.png`. NOTE: the good bolt (10 mm) and bad_d (13 mm) differ by only 3 mm: a good PASS/FAIL resolution test; a 10 mm bolt is the only long-run test of accuracy, so the 5-in-a-row ruler measurement is still wanted. Cause of the light change: not yet answered by the user.
+
+## M2 results (2026-10-18)
+- Spec decisions (data-based, see MEASUREMENT.md): default window x0=400 y0=240 W=480 H=360; polarity bit (bright object); **3x3 majority filter moved into the MVP** (from Standard) because the fuzzy mat gives specks; Otsu rejected (picks T=18..75 on dark frames); accumulator widths sized for the full frame (A 20 b, SX 30, SY 29, SXX 39, SYY 38, SXY 38 -> 40-bit regs); length = sqrt(12*l1+1) (exact for solid rectangles, self-test passes); new software status NOISY (box ratio > 1.5).
+- Golden vs OpenCV: 285/285 frames agree in 5 settings (T120, T180, filter off, POL=0, full-frame window). Mutation test: 3 planted bugs each caught on 10/10 frames.
+- Offline (T=120 dark / 180 bright): good bolts L_px median 71.0-73.6 (MAD 1.8-3.1); bad_d 84.3, bad_c 104.5, bad_b 149.3, bad_a 194.9 -> separable by length. 3-frame burst noise: median 1.33 px. Provisional k = 0.137 mm/px (from good = 10 mm).
+- Problems found: (1) good parts only in dark frames, bad parts only in bright frames -> confounded, re-capture all parts in ONE locked lighting; (2) shiny cylinders: W_px measures the highlight stripe (about 10 px), not the real width; (3) fixed dust grains on the mat (679,218) and others -> clean the mat with tape before B2; (4) NVIDIA may send "limited range" RGB (16-235) over HDMI for 720p -> check/set "Full" range before B2, otherwise the board sees other gray values than the screen grab.
 
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
