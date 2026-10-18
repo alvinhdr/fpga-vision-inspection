@@ -36,6 +36,14 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - 2026-10-12: project idea, phone-as-webcam camera, Python viewer first then C# WPF after the board is returned, progressive plan.
 - 2026-10-16: board return date 22 Oct → short schedule above (proposed).
 
+## M1 facts (2026-10-18)
+- Parts: **bolts about 10 mm long, nuts about 5 mm** (very small). Shiny silver. Background: black desk mat (good: bright metal on dark).
+- Consequence for the design: the object is BRIGHTER than the background -> the threshold block needs a polarity bit (object if gray > T, or gray < T). Put it in `docs/MEASUREMENT.md` (M2) and in the register map.
+- Resolution: field of view must be small. At 25 cm wide view, 1 px = 0.2 mm -> bolt = 50 px, nut = 25 px (error +-1 px = 2 % and 4 %). Camera 12-15 cm above (view about 12-15 cm wide, 1 px about 0.1 mm) is much better. Ruler checks only to about 0.5 mm at this size -> accuracy claims must say so; a digital caliper would help.
+- `py/capture_frames.py` written and checked: laptop webcam is camera 0 (1280x720). DroidCam on the phone is installed, phone stand available.
+- The old SD card is not at hand (left at the other place): not needed, B1 uses JTAG.
+- Date check: today 2026-10-18; board returns 2026-10-22 (4 days). B1 checklist: `notes/B1_CHECKLIST.md`.
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
