@@ -65,6 +65,8 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 ## M1 capture log
 - 2026-10-18 session `s1` (`py/grab_hdmi.py`, data in `data/raw/s1/`, git-ignored): 147 frames: empty 3, bolt_good_01 27, _02 33, _03 27, _04 27, _05 30. 8 frames show the user's hand (listed in `data/raw/s1/hand_frames.txt`, exclude from accuracy sets, keep as a robustness test). Exposure was probably not locked (frame mean gray 21-37, higher with the hand). Still missing: more `empty` frames (only 3), bad/different parts, nuts (user has none), lamp-moved frames, parts table with ruler lengths (`data/parts.csv`).
 
+- 2026-10-18 later: session `s1` now 285 frames: empty 21, bolt_good_01..05 (27/33/27/27/30), bad_a 30, bad_b 27, bad_c 30, bad_d 33 (other bolt/screw types, ruler lengths still to be measured). **Two brightness regimes in one session:** first 147 frames dark (mean gray about 20-37, mat p99 about 49), later 138 frames bright (mean about 52-64, mat p99 about 118, p99.9 about 141, parts up to 253). Fixed threshold 80 is clean on the dark set but marks about 65,000 mat pixels on the bright set; 150+ is needed there. -> strong evidence for exposure lock AND the Otsu auto-threshold (Standard tier, M6.3): record it in RESULTS. The bright set is a free "lighting change" test set. Cause of the change not yet confirmed by the user (lamp/room light/auto exposure).
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
