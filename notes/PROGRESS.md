@@ -81,6 +81,13 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - Ruler seen in the picture (red translucent 30 cm ruler at the bottom edge): numbers 0..10 cm at x = 578..1166 -> about 58.8 px per cm -> about 0.170 mm/px at the current phone height. The phone height was probably different in s1 (good bolt = 73 px equivalent length there), so **the ruler frame must be taken in the SAME setup as the part frames**. The mm tick lines were cut off by the picture edge: move the ruler up so its tick edge is fully visible.
 - Plan for s2 (`py/grab_hdmi.py --session s2`): empty x5, ruler x2, bolt_good_01..05 x5 each, bad_a..d x5 each. Do not touch phone/stand/lamp during the session.
 
+## M5 prep done offline while the user was away (2026-10-18)
+- `docs/REGISTERS.md` (PROPOSED register map, to be confirmed/changed in M4) + `sw/common/insp_regs.h` (same map, safe `insp_read_result()` with frame-id check); `docs/PROTOCOL.md` (UART text protocol); `py/uart_log.py` (UART -> CSV logger, parser self-test passes).
+- ARM maths in C: `sw/inspect/insp_math.[ch]` (pure C), PC test `sw/test/test_insp_math.c` + `scripts/test_arm_math.py`: **C = Python (measure.py) on all 285 frames** (centre, angle, L, W, box ratio, bbox, status, verdict; rel. error limit 1e-9); mutation (wrong window origin) detected on 244 frames. Compiler: MinGW gcc 10 inside Vivado (`C:\Xilinx5.1	ps\mingw.0.0\win64.o
+tin\gcc.exe`), nothing installed.
+- `sw/inspect/main.c` rewritten (result line per frame, text commands t p f o b w n k c s m z). Vitis build check started with the M0 XSA (it compiles the code only; the registers do not exist in hardware until M4).
+- Old `edge_ai_regs.h` removed. Not tested on the board.
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
