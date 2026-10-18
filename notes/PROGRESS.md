@@ -25,6 +25,7 @@ Otsu/histogram and 3x3 filter only if time is left; otherwise build later and pr
 - Already present, checked 2026-10-16: Vivado + Vitis 2025.1 (`C:\Xilinx\2025.1`), Python 3.13.15, git 2.55.0, GitHub CLI logged in as `alvinhdr`.
 - Installed 2026-10-16 (Python venv `.venv/` inside the repo folder, git-ignored; source PyPI; list in `py/requirements.txt`): `numpy 2.5.4` (arrays, golden model), `opencv-python 5.0.0.93` (cross-check, camera capture), `pillow 12.3.0` (PNG files), `pyserial 3.5` (UART), `mss 10.2.0` (screen capture).
 - Git submodule `third_party/vivado-library` (Digilent HDMI IP, GitHub, pinned `f4613ff`).
+- Installed 2026-10-18 via winget: `DroidCam Client (New) 7.2.1` (dev47apps.DroidCamOBSClient, official publisher, installer hash verified) - Windows side of the phone webcam (the phone app waits for it; no browser stream).
 - Still to install, only after asking: .NET SDK + Visual Studio / VS Code (C# phase).
 
 ## What works
@@ -48,6 +49,14 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - Programmed `build/inspect.bit` over JTAG (xsdb `program.tcl bit`). First attempt showed no LEDs after the HDMI cables were added later; re-programming fixed it (the design is lost if the board power is cycled).
 - Result: LD0 and LD3 blink, LD1 and LD2 on (HDMI locked). Monitor (ViewSonic, not the TV) shows the laptop desktop through the board with the green window frame. No flicker seen by the user, colours correct. Photo: `data/photos/b1_passthrough_desktop_2026-10-18.jpg` (clock on screen 10:41).
 - Not yet done: sw[0]/sw[1] check, phone camera on the screen, bolts on black mat, session start/end time (board hours used still to be written).
+
+## B1 findings (2026-10-18)
+- **Camera chain that works:** phone app **IP Webcam** (free, no watermark; DroidCam free versions are rejected: 640x480 in the classic client, moving watermark in the new one) -> Chrome page `http://192.168.1.23:8080/browserfs.html` (phone IP may change) -> **F11 full screen on the 1280x720 display** -> HDMI -> Zybo -> monitor. Laptop display is in **Extend** mode: DISPLAY1 = laptop panel 1920x1080, DISPLAY2 = the board's output 1280x720@60 at X=1920. `mss` monitor index 2 grabs exactly the picture the board receives -> use it for all captures (`data/raw/b1/hdmi_screen_*.png`).
+- My own shell cannot reach the phone's TCP ports (ping works, Chrome works); not needed because we capture the screen.
+- **Black mat + side lamp works**: mat gray mean about 16 (p99 36), bolt >100. Object is brighter than background -> polarity "object = gray > T" confirmed. A threshold anywhere 40..100 finds the bolt.
+- **Size at 25 cm phone height:** bolt (about 10 mm) = 18 x 48 px (T=60, area 289 px) -> about 0.21 mm per pixel. Threshold 40 vs 100 changes the length by about 4 px (8 %) because the edges are soft -> the final accuracy needs more pixels: use the phone zoom (IP Webcam web page) or get closer; fix exposure/focus.
+- A white object (stand/lamp arm) is in the top-right of the picture: keep it outside the inspection window.
+- Old DroidCam clients are still installed (classic 6.5.3 and new 7.2.1); not used now.
 
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
