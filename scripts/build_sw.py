@@ -130,6 +130,14 @@ try:
     with open(cfg, "w") as f:
         f.write(new_txt)
     print(f"INFO: compiler optimization level {opt}")
+    # Maths library (sqrt, atan2 in sw/inspect/insp_math.c): add -lm for apps that include math.h.
+    if any("math.h" in open(os.path.join(SRC_DIR, f), errors="ignore").read() for f in src_files):
+        txt = open(cfg).read()
+        txt2 = re.sub(r"set\(USER_LINK_LIBRARIES\s*\)", "set(USER_LINK_LIBRARIES\n    m\n)", txt)
+        if txt2 == txt:
+            sys.exit("ERROR: could not add -lm in " + cfg)
+        open(cfg, "w").write(txt2)
+        print("INFO: linking the maths library (-lm)")
     app.build()
 
     # 4. Copy the ELF to build/sw/

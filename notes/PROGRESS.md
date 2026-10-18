@@ -85,7 +85,7 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - `docs/REGISTERS.md` (PROPOSED register map, to be confirmed/changed in M4) + `sw/common/insp_regs.h` (same map, safe `insp_read_result()` with frame-id check); `docs/PROTOCOL.md` (UART text protocol); `py/uart_log.py` (UART -> CSV logger, parser self-test passes).
 - ARM maths in C: `sw/inspect/insp_math.[ch]` (pure C), PC test `sw/test/test_insp_math.c` + `scripts/test_arm_math.py`: **C = Python (measure.py) on all 285 frames** (centre, angle, L, W, box ratio, bbox, status, verdict; rel. error limit 1e-9); mutation (wrong window origin) detected on 244 frames. Compiler: MinGW gcc 10 inside Vivado (`C:\Xilinx5.1	ps\mingw.0.0\win64.o
 tin\gcc.exe`), nothing installed.
-- `sw/inspect/main.c` rewritten (result line per frame, text commands t p f o b w n k c s m z). Vitis build check started with the M0 XSA (it compiles the code only; the registers do not exist in hardware until M4).
+- `sw/inspect/main.c` rewritten (result line per frame, text commands t p f o b w n k c s m z). **ARM app builds** (`vitis -s scripts/build_sw.py inspect`, -O2, M0 XSA): `build/sw/inspect.elf`, text 35,765 B. `build_sw.py` now adds `-lm` when an app includes math.h. Gotcha again: a leftover java/python process holding `~/fpga_ws` gives WinError 32 -> kill processes with 'fpga_ws' in the command line and rerun. The registers do not exist in hardware until M4, so it cannot do anything useful on the board yet.
 - Old `edge_ai_regs.h` removed. Not tested on the board.
 
 ## Open problems
