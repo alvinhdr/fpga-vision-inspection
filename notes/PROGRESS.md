@@ -44,6 +44,11 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - The old SD card is not at hand (left at the other place): not needed, B1 uses JTAG.
 - Date check: today 2026-10-18; board returns 2026-10-22 (4 days). B1 checklist: `notes/B1_CHECKLIST.md`.
 
+## B1 log (2026-10-18, board session 1, in progress)
+- Programmed `build/inspect.bit` over JTAG (xsdb `program.tcl bit`). First attempt showed no LEDs after the HDMI cables were added later; re-programming fixed it (the design is lost if the board power is cycled).
+- Result: LD0 and LD3 blink, LD1 and LD2 on (HDMI locked). Monitor (ViewSonic, not the TV) shows the laptop desktop through the board with the green window frame. No flicker seen by the user, colours correct. Photo: `data/photos/b1_passthrough_desktop_2026-10-18.jpg` (clock on screen 10:41).
+- Not yet done: sw[0]/sw[1] check, phone camera on the screen, bolts on black mat, session start/end time (board hours used still to be written).
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
