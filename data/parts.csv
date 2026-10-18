@@ -1,0 +1,6 @@
+part,type,length_mm,length_uncertainty_mm,class,note
+bolt_good_01..05,good bolt (thin, round flat head),10,1,good,"user estimate 'about 1 cm' (ruler, 1 mm marks); to be measured more carefully: 5 bolts end to end / 5"
+bad_a,golden threaded rod (thick),30,3,bad,"user: about 3 cm, maybe a little more, not sure"
+bad_b,hex-head screw with washer,25,2,bad,"user: about 2.5 cm"
+bad_c,rusty-head sheet-metal screw,15,1,bad,"user: 1.5 cm"
+bad_d,socket-head bolt (short, thick),13,1,bad,"user: about 1.3 cm"

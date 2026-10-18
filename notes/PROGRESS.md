@@ -67,6 +67,8 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 
 - 2026-10-18 later: session `s1` now 285 frames: empty 21, bolt_good_01..05 (27/33/27/27/30), bad_a 30, bad_b 27, bad_c 30, bad_d 33 (other bolt/screw types, ruler lengths still to be measured). **Two brightness regimes in one session:** first 147 frames dark (mean gray about 20-37, mat p99 about 49), later 138 frames bright (mean about 52-64, mat p99 about 118, p99.9 about 141, parts up to 253). Fixed threshold 80 is clean on the dark set but marks about 65,000 mat pixels on the bright set; 150+ is needed there. -> strong evidence for exposure lock AND the Otsu auto-threshold (Standard tier, M6.3): record it in RESULTS. The bright set is a free "lighting change" test set. Cause of the change not yet confirmed by the user (lamp/room light/auto exposure).
 
+- Parts table written: `data/parts.csv` (user ruler estimates 2026-10-18: good bolt about 10 mm, bad_a about 30, bad_b about 25, bad_c 15, bad_d 13 mm; uncertainty 1-3 mm). Picture of all types: `data/photos/part_types_s1.png`. NOTE: the good bolt (10 mm) and bad_d (13 mm) differ by only 3 mm: a good PASS/FAIL resolution test; a 10 mm bolt is the only long-run test of accuracy, so the 5-in-a-row ruler measurement is still wanted. Cause of the light change: not yet answered by the user.
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
