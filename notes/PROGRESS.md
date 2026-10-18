@@ -62,6 +62,9 @@ Nothing yet in this project. The previous project (`C:\Users\User\Documents\the 
 - Stand arm at the top right of the picture (x about 900-1050, y 0-400): inspection window must stay left of x = 880 or the arm must be turned away. Default window candidate: about 400 x 300 centred at (640, 360) -> x 440..839, y 210..509 (decide in M2).
 - Board is NOT needed for frame capture (screen grab); capture sessions can continue without it. Board needed again for B2.
 
+## M1 capture log
+- 2026-10-18 session `s1` (`py/grab_hdmi.py`, data in `data/raw/s1/`, git-ignored): 147 frames: empty 3, bolt_good_01 27, _02 33, _03 27, _04 27, _05 30. 8 frames show the user's hand (listed in `data/raw/s1/hand_frames.txt`, exclude from accuracy sets, keep as a robustness test). Exposure was probably not locked (frame mean gray 21-37, higher with the hand). Still missing: more `empty` frames (only 3), bad/different parts, nuts (user has none), lamp-moved frames, parts table with ruler lengths (`data/parts.csv`).
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
