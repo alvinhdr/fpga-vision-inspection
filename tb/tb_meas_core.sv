@@ -8,6 +8,8 @@
 // Plusargs (no "=": Windows .bat files split at it): +IN_<frames.bin> +OUT_<results.txt> +FRAMES_<n>
 //           +X0_<n> +Y0_ +W_ +H_ +T_ +POL_ +FILT_   (settings, same meaning as py/golden.py Settings)
 //           +HBL_<clocks>  horizontal blanking (default 12; real 720p: 370)
+//           +ALT_1 with +X0B_ +Y0B_ +WB_ +HB_ +TB_ +POLB_ +FILTB_ : odd frames use these settings B; the
+//           change is applied in the clock where pix_pos_counter raises sof (tests the latch-at-sof path)
 // Output line: A SX SY SXX SYY SXY UMIN UMAX VMIN VMAX  (decimal)
 // =============================================================================
 `timescale 1ns/1ps
@@ -41,7 +43,9 @@ module tb_meas_core;
 
     string in_file, out_file;
     int    n_frames, hbl, fd_in, fd_out, n_done = 0;
-    int    x0, y0, w, h, t, pol, filt;
+    int    x0, y0, w, h, t, pol, filt, alt;
+    int    x0b, y0b, wb, hb, tb_, polb, filtb;
+    meas_cfg_t cfg_a, cfg_b;
     logic [7:0] line_buf [0:FW*3-1];
 
     always @(posedge clk) begin
@@ -69,7 +73,17 @@ module tb_meas_core;
         if (!$value$plusargs("T_%d", t))     t = 120;
         if (!$value$plusargs("POL_%d", pol)) pol = 1;
         if (!$value$plusargs("FILT_%d", filt)) filt = 1;
-        cfg = '{x0: x0[10:0], y0: y0[10:0], w: w[10:0], h: h[10:0], thresh: t[7:0], pol: pol[0], filt_en: filt[0]};
+        cfg_a = '{x0: x0[10:0], y0: y0[10:0], w: w[10:0], h: h[10:0], thresh: t[7:0], pol: pol[0], filt_en: filt[0]};
+        if (!$value$plusargs("ALT_%d", alt)) alt = 0;
+        if (!$value$plusargs("X0B_%d", x0b))   x0b = x0;
+        if (!$value$plusargs("Y0B_%d", y0b))   y0b = y0;
+        if (!$value$plusargs("WB_%d", wb))     wb = w;
+        if (!$value$plusargs("HB_%d", hb))     hb = h;
+        if (!$value$plusargs("TB_%d", tb_))    tb_ = t;
+        if (!$value$plusargs("POLB_%d", polb)) polb = pol;
+        if (!$value$plusargs("FILTB_%d", filtb)) filtb = filt;
+        cfg_b = '{x0: x0b[10:0], y0: y0b[10:0], w: wb[10:0], h: hb[10:0], thresh: tb_[7:0], pol: polb[0], filt_en: filtb[0]};
+        cfg   = cfg_a;
 
         fd_in  = $fopen(in_file, "rb");
         fd_out = $fopen(out_file, "w");
@@ -80,6 +94,9 @@ module tb_meas_core;
             for (int yy = 0; yy < FH; yy++) begin
                 if ($fread(line_buf, fd_in) != FW * 3) $fatal(1, "input file too short (frame %0d)", fr);
                 for (int xx = 0; xx < FW; xx++) begin
+                    // settings for this frame: applied when the 2nd pixel enters, i.e. in the clock where
+                    // pix_pos_counter shows sof for the 1st pixel (frame 0 keeps the start value A)
+                    if (alt && yy == 0 && xx == 1) cfg <= (fr % 2) ? cfg_b : cfg_a;
                     vid_in.de   <= 1'b1;
                     vid_in.data <= pack_rgb(line_buf[3*xx], line_buf[3*xx+1], line_buf[3*xx+2]);
                     @(posedge clk);

@@ -30,7 +30,8 @@ SIM_DIR = os.path.join(ROOT, "build", "sim", "tb_meas_core")
 SOURCES = ["rtl/video_pkg.sv", "rtl/insp_pkg.sv", "rtl/rgb2gray.sv", "rtl/pix_pos_counter.sv",
            "rtl/meas_core.sv", "tb/tb_meas_core.sv"]
 
-# name: (settings, how many frames: None = all)
+# name: (settings, how many frames: None = all). Optional third item: dict with "alt" (settings B for odd frames,
+# switched exactly at sof), "hbl" (horizontal blanking clocks), "synthetic" (use generated frames).
 CASES = {
     "default":     (dict(x0=400, y0=240, w=480, h=360, t=120, pol=1, filt_en=1), None),
     "bright_t180": (dict(x0=400, y0=240, w=480, h=360, t=180, pol=1, filt_en=1), None),
@@ -41,7 +42,29 @@ CASES = {
     "tiny_1x1":    (dict(x0=640, y0=360, w=1, h=1, t=20, pol=1, filt_en=0), 6),
     "thin_3x2":    (dict(x0=630, y0=350, w=3, h=2, t=20, pol=1, filt_en=1), 6),
     "one_row":     (dict(x0=100, y0=300, w=1100, h=1, t=40, pol=1, filt_en=0), 6),
+    "alt_at_sof":  (dict(x0=400, y0=240, w=480, h=360, t=120, pol=1, filt_en=1), 10,
+                    {"alt": dict(x0=0, y0=0, w=700, h=500, t=90, pol=1, filt_en=0)}),
+    "hbl_1":       (dict(x0=0, y0=0, w=1280, h=720, t=100, pol=1, filt_en=1), 4, {"hbl": 1}),
+    "synth_max":   (dict(x0=0, y0=0, w=1280, h=720, t=100, pol=1, filt_en=1), None, {"synthetic": True}),
+    "synth_nofilt": (dict(x0=0, y0=0, w=1280, h=720, t=100, pol=1, filt_en=0), None, {"synthetic": True}),
 }
+
+
+def synthetic_frames():
+    """All white (every accumulator at its maximum), all black (A = 0), checkerboards (filter edge cases)."""
+    d = os.path.join(SIM_DIR, "synth")
+    os.makedirs(d, exist_ok=True)
+    yy, xx = np.mgrid[0:720, 0:1280]
+    imgs = {"white": np.full((720, 1280), 255, np.uint8), "black": np.zeros((720, 1280), np.uint8),
+            "checker1": (((xx + yy) % 2) * 255).astype(np.uint8),
+            "checker2": ((((xx // 2) + (yy // 2)) % 2) * 255).astype(np.uint8),
+            "random": (np.random.default_rng(1).random((720, 1280)) > 0.5).astype(np.uint8) * 255}
+    files = []
+    for k, g in imgs.items():
+        fn = os.path.join(d, f"{k}.png")
+        cv2.imwrite(fn, cv2.merge([g, g, g]))
+        files.append(fn)
+    return files
 
 
 def build():
@@ -59,20 +82,27 @@ def build():
                 sys.exit(f"{log} failed")
 
 
-def run_case(name, st, files):
+def run_case(name, st, files, opt=None):
+    opt = opt or {}
     s = Settings(**st)
+    sb = Settings(**opt["alt"]) if "alt" in opt else None
     binf = os.path.join(SIM_DIR, "frames.bin")
     expected = []
     with open(binf, "wb") as fh:
         for fn in files:
             bgr = cv2.imread(fn)
             fh.write(np.ascontiguousarray(bgr[:, :, ::-1]).tobytes())        # R, G, B per pixel
-            r = measure_frame(bgr, s)
+            r = measure_frame(bgr, sb if (sb and len(expected) % 2) else s)
             expected.append([r[k] for k in FIELDS])
     out = os.path.join(SIM_DIR, f"res_{name}.txt")
     # no "=" in plusargs: Windows .bat files split arguments at "="
     args = [f"IN_frames.bin", f"OUT_{os.path.basename(out)}", f"FRAMES_{len(files)}",
             f"X0_{s.x0}", f"Y0_{s.y0}", f"W_{s.w}", f"H_{s.h}", f"T_{s.t}", f"POL_{s.pol}", f"FILT_{s.filt_en}"]
+    if sb:
+        args += ["ALT_1", f"X0B_{sb.x0}", f"Y0B_{sb.y0}", f"WB_{sb.w}", f"HB_{sb.h}", f"TB_{sb.t}",
+                 f"POLB_{sb.pol}", f"FILTB_{sb.filt_en}"]
+    if "hbl" in opt:
+        args += [f"HBL_{opt['hbl']}"]
     cmd = [os.path.join(VIVADO_BIN, "xsim.bat"), "snap", "-runall"]
     for a in args:
         cmd += ["-testplusarg", a]
@@ -104,11 +134,14 @@ def main():
     build()
     cases = {"default": CASES["default"]} if args.quick else ({args.case: CASES[args.case]} if args.case else CASES)
     all_ok = True
-    for name, (st, n) in cases.items():
+    for name, case in cases.items():
+        st, n = case[0], case[1]
+        opt = case[2] if len(case) > 2 else {}
+        pool = synthetic_frames() if opt.get("synthetic") else files
         lim = 2 if args.quick else (args.limit or n)
         # spread the chosen frames over the whole set (dark and bright, all labels)
-        sel = files if not lim or lim >= len(files) else [files[int(i)] for i in np.linspace(0, len(files) - 1, lim)]
-        all_ok &= run_case(name, st, sel)
+        sel = pool if not lim or lim >= len(pool) else [pool[int(i)] for i in np.linspace(0, len(pool) - 1, lim)]
+        all_ok &= run_case(name, st, sel, opt)
     print("ALL CASES BIT-EXACT" if all_ok else "SOME CASES FAILED")
     sys.exit(0 if all_ok else 1)
 

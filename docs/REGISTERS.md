@@ -68,7 +68,6 @@ reserved: reads return 0, writes are ignored.
 ## Clock domain crossing (details go to `docs/CDC.md` in M4)
 
 - `CTRL`, `THRESH`, `WIN_*`, `OVL_*`: `clk_acc` → `clk_pix`, one multi-bit req/ack crossing (`cdc_bus_sync`).
-- Results: `clk_pix` → `clk_acc`. The result banks are written by the pixel side and read by the AXI side; the bank
-  bit and the frame counter go through 2-flop synchronizers (`READY_BANK`) and a pulse synchronizer, and the data
-  words are only read while their bank is not being written (the rule above), so no data word is ever sampled
-  while it changes.
+- Results: `clk_pix` → `clk_acc`. The pixel side flips a toggle after writing a bank; the AXI side synchronizes it
+  (2 flops) and derives its bank pointer from it, counting `FRAME_CNT` in the same clock. A bank is only read while it
+  cannot be written, so no data word is ever sampled while it changes (docs/CDC.md, method 2).

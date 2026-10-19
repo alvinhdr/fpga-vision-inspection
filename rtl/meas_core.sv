@@ -132,6 +132,12 @@ module meas_core
                 flush_u_q <= flush_u_q + 1'b1;
             end
         end
+        // A frame cut short (HDMI lost in the flush row) must not finish later as a stale result:
+        // a new frame always starts the generator from a clean state (review finding R3).
+        if (i_sof) begin
+            pad_pend_q <= 1'b0;
+            flush_q    <= 1'b0;
+        end
     end
 
     // ---- F1: line buffer (2 bits per column: rows v-1 and v-2) + 3x3 column window ------------
@@ -156,7 +162,7 @@ module meas_core
     logic [2:0] col;             // {row v-2, row v-1, row v} of column u
     always_comb begin
         r1  = (f1_v == '0)                    ? 1'b0 : lb_rd_q[0];
-        r2  = (f1_v == '0 || f1_v == 11'd1)   ? 1'b0 : lb_rd_q[1];
+        r2  = (f1_v == '0 || f1_v == CW'(1))  ? 1'b0 : lb_rd_q[1];
         col = f1_pad ? 3'b000 : {r2, r1, f1_obj};
     end
 

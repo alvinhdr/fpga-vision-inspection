@@ -45,7 +45,7 @@ module insp_overlay
     localparam logic [23:0] C_CYAN    = 24'h00_FF_FF;    // B + G
     localparam logic [23:0] C_MAGENTA = 24'hFF_FF_00;    // R + B
 
-    // 13-bit signed-safe arithmetic: coordinates + border never wrap
+    // 14-bit signed arithmetic: coordinates +- border never wrap
     logic signed [13:0] x, y, wx0, wy0, wx1, wy1, cx, cy;
     logic in_outer, in_win, on_frame, on_box, on_cross;
     logic [23:0] frame_col;

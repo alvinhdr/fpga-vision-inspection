@@ -5,8 +5,8 @@
 //          (same list in sw/common/insp_regs.h).
 //
 // Result banks (clk_pix registers, read here WITHOUT a synchronizer, on purpose):
-//   i_done_toggle is synchronized (2 flops). On each change, bank_q flips and frame_cnt_q counts,
-//   in the SAME clock. bank_q always points at the bank the pixel side finished last; that bank is not
+//   i_done_toggle is synchronized (2 flops). bank_q = ~(synchronized toggle) and frame_cnt_q counts its
+//   changes, in the SAME clock. bank_q always points at the bank the pixel side finished last; that bank is not
 //   written again for at least one more video frame (16.7 ms), so its bits are stable whenever they
 //   are read. The ARM reads FRAME_CNT before and after the result words and retries if it changed.
 //   Full explanation: docs/CDC.md.
@@ -64,7 +64,14 @@ module axil_insp
                             A_OVLV = 16'h080, A_OVLC = 16'h084;
 
     // ---- settings registers ---------------------------------------------------------------
-    logic [31:0] ctrl_q, thresh_q, wpos_q, wsize_q, ovlv_q, ovlc_q;
+    // Initial values = reset values, so the settings crossing never sends all-zero settings while clk_acc
+    // starts and rst_n is still low (review finding R2).
+    localparam logic [31:0] CTRL_RST   = 32'h0000_0007;                                 // POL, FILT_EN, OVERLAY_EN
+    localparam logic [31:0] THRESH_RST = {24'd0, CFG_DEFAULT.thresh};
+    localparam logic [31:0] WPOS_RST   = {5'd0, CFG_DEFAULT.y0, 5'd0, CFG_DEFAULT.x0};
+    localparam logic [31:0] WSIZE_RST  = {5'd0, CFG_DEFAULT.h,  5'd0, CFG_DEFAULT.w};
+    logic [31:0] ctrl_q = CTRL_RST, thresh_q = THRESH_RST, wpos_q = WPOS_RST, wsize_q = WSIZE_RST;
+    logic [31:0] ovlv_q = '0, ovlc_q = '0;
 
     assign o_cfg = '{x0: wpos_q[10:0], y0: wpos_q[26:16], w: wsize_q[10:0], h: wsize_q[26:16],
                      thresh: thresh_q[7:0], pol: ctrl_q[0], filt_en: ctrl_q[1]};
@@ -89,10 +96,10 @@ module axil_insp
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            ctrl_q       <= 32'h0000_0007;                                   // POL, FILT_EN, OVERLAY_EN
-            thresh_q     <= {24'd0, CFG_DEFAULT.thresh};
-            wpos_q       <= {5'd0, CFG_DEFAULT.y0, 5'd0, CFG_DEFAULT.x0};
-            wsize_q      <= {5'd0, CFG_DEFAULT.h,  5'd0, CFG_DEFAULT.w};
+            ctrl_q       <= CTRL_RST;
+            thresh_q     <= THRESH_RST;
+            wpos_q       <= WPOS_RST;
+            wsize_q      <= WSIZE_RST;
             ovlv_q       <= '0;
             ovlc_q       <= '0;
             s_axi_bvalid <= 1'b0;
@@ -117,7 +124,7 @@ module axil_insp
     // ---- events from the pixel side ---------------------------------------------------------
     (* ASYNC_REG = "TRUE" *) logic [1:0] done_sync_q = '0, sof_sync_q = '0, lock_sync_q = '0;
     logic        done_last_q = 1'b0, sof_last_q = 1'b0;
-    logic        bank_q = 1'b1;          // after the first result set (bank 0 written) it points to bank 0
+    logic        bank_q = 1'b1;
     logic [31:0] frame_cnt_q = '0, pix_frames_q = '0;
 
     always_ff @(posedge clk) begin
@@ -126,14 +133,16 @@ module axil_insp
         lock_sync_q <= {lock_sync_q[0], i_video_locked};
         done_last_q <= done_sync_q[1];
         sof_last_q  <= sof_sync_q[1];
+        // The pixel side flips wr_bank and done_toggle together (both start at 0), so the bank written
+        // last is always ~done_toggle. The pointer is derived from it, not counted: it can never get out
+        // of step, not even when this side is reset while video runs (review finding B1). It changes in the
+        // same clock as frame_cnt_q below.
+        bank_q <= ~done_sync_q[1];
         if (!rst_n) begin
             frame_cnt_q  <= '0;
             pix_frames_q <= '0;
         end else begin
-            if (done_sync_q[1] != done_last_q) begin
-                bank_q      <= ~bank_q;               // the bank pointer and the counter change together
-                frame_cnt_q <= frame_cnt_q + 1'b1;
-            end
+            if (done_sync_q[1] != done_last_q) frame_cnt_q <= frame_cnt_q + 1'b1;
             if (sof_sync_q[1] != sof_last_q) pix_frames_q <= pix_frames_q + 1'b1;
         end
     end

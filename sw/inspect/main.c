@@ -84,6 +84,9 @@ static insp_cfg_t    cfg;
 static insp_geom_t   last_geom;
 static int           stream_on = 1;
 static uint32_t      skipped = 0, results = 0;
+/* WIN_POS and WIN_SIZE are two AXI writes, so one frame may be measured with a mixed window
+ * (old position, new size). Results are ignored until two new result sets have passed. */
+static uint32_t      ignore_until = 0;
 
 static void apply_window(void)
 {
@@ -130,6 +133,7 @@ static void do_command(const char *line)
             int x0 = (int)parse_double(&s), y0 = (int)parse_double(&s), w = (int)parse_double(&s), h = (int)parse_double(&s);
             if (x0 < 0 || y0 < 0 || w < 1 || h < 1 || x0 + w > 1280 || y0 + h > 720) { xil_printf("ERR window outside 1280x720\r\n"); break; }
             win.x0 = x0; win.y0 = y0; win.w = w; win.h = h; apply_window();
+            ignore_until = insp_rd(INSP_FRAME_CNT) + 2u;
             break;
         }
         case 'n': cfg.L_nom = parse_double(&s); cfg.L_tol = parse_double(&s); break;
@@ -180,6 +184,7 @@ int main(void)
         if (!got) continue;                                   /* could not read consistently: try again */
         if (got - last_id > 1u) skipped += got - last_id - 1u;
         last_id = got;
+        if ((int32_t)(got - ignore_until) < 0) continue;      /* settings just changed */
         results++;
 
         insp_geom_t g;

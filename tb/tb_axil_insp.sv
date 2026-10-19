@@ -133,9 +133,10 @@ module tb_axil_insp;
             cfg.pol != 0 || cfg.filt_en != 1 || ovl_en != 0 || bin_view != 0 || verdict != 2 || cx != 777 || cy != 333) begin
             $display("ERROR settings outputs"); errors++;
         end
-        // byte strobe: only byte 0
-        wstrb = 4'b0001; axi_write(16'h008, 32'h0000_0011); wstrb = 4'hF;
-        check(16'h008, 32'h0000_0011, "THRESH byte write");
+        // byte strobe: only byte 2 (bits 23:16) of WIN_POS may change; x0 (byte 0) must stay 50
+        wstrb = 4'b0100; axi_write(16'h00C, 32'hFFFF_FFFF); wstrb = 4'hF;
+        check(16'h00C, {5'd0, 11'h0FF, 5'd0, 11'd50}, "WIN_POS byte-2 write");
+        axi_write(16'h00C, {5'd0, 11'd100, 5'd0, 11'd50});
 
         // result banks: 5 result sets, the newest one must always be read
         for (int k = 1; k <= 5; k++) begin
@@ -146,6 +147,16 @@ module tb_axil_insp;
         @(posedge clk_pix); if (wr_bank) bank1 <= mk(99); else bank0 <= mk(99);
         repeat (4) @(posedge clk);
         check_result(mk(5), 5);
+
+        // reset of the AXI side while the pixel side keeps producing results (review finding B1):
+        // a result set finished during reset must still be the one that is read afterwards
+        @(posedge clk); rst_n <= 0;
+        pix_done(mk(6));
+        @(posedge clk); rst_n <= 1;
+        repeat (3) @(posedge clk);
+        check_result(mk(6), 0);                 // counter restarts at 0, data is the newest set
+        pix_done(mk(7));
+        check_result(mk(7), 1);
 
         // video frame counter
         repeat (3) begin @(posedge clk_pix); sof_tog <= ~sof_tog; repeat (8) @(posedge clk); end

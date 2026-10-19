@@ -73,7 +73,7 @@ The widths are chosen for the **largest legal window** (the whole frame), so no 
 Empty window (`A = 0`): `SX..SXY = 0`, and the bounding box reads `UMIN = VMIN = 0x7FF`, `UMAX = VMAX = 0`
 (the reset values). The ARM must check `A` first and never divide by it when it is 0.
 
-**Timing:** all accumulators are cleared at the start of the window (first window pixel of the frame) and the
+**Timing:** all accumulators are cleared at the start of the frame (first visible pixel, before any window pixel) and the
 complete set is copied into one of two result banks after the last window pixel has passed the filter
 (the filter output for row H-1 comes one row and one pixel later). The results of frame N are therefore used
 (by the ARM and the overlay) during frame N+1. Bank handling and the clock crossing are specified in M4 (`docs/CDC.md`).
