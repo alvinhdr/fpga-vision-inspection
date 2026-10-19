@@ -88,6 +88,9 @@ tin\gcc.exe`), nothing installed.
 - `sw/inspect/main.c` rewritten (result line per frame, text commands t p f o b w n k c s m z). **ARM app builds** (`vitis -s scripts/build_sw.py inspect`, -O2, M0 XSA): `build/sw/inspect.elf`, text 35,765 B. `build_sw.py` now adds `-lm` when an app includes math.h. Gotcha again: a leftover java/python process holding `~/fpga_ws` gives WinError 32 -> kill processes with 'fpga_ws' in the command line and rerun. The registers do not exist in hardware until M4, so it cannot do anything useful on the board yet.
 - Old `edge_ai_regs.h` removed. Not tested on the board.
 
+## 2026-10-19 update from the user
+- **Board last day is 2026-10-21** (was 22 Oct). Updated job list (82 postings, `KCCI Jobs/kcci_jobs_detailed.md`): new postings are mostly PLC/maintenance/panel design; open to him and relevant: 63 Samjin E&I embedded/firmware, 57 DH Lighting embedded SW, 77 DH Lighting circuit design, 75/66 mechanical; FPGA/ISP (81 Pixelplus) and PCB (58) are Vietnam quota only. Machine vision stays only in #8, #4 (and #35/#19). The user doubts the project is too specific and has little excitement for it; discussion of continue/pivot pending his decision.
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
