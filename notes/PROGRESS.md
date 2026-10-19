@@ -1,7 +1,7 @@
 # PROGRESS
 
 ## Current milestone
-**M2 - spec + golden model (in progress, 2026-10-18).** Done: `docs/MEASUREMENT.md`, `py/golden.py`, `py/check_opencv.py`, `py/measure.py`; golden = OpenCV on all 285 frames. Waiting for: user review of MEASUREMENT.md (plain summary given in chat), AI-layer decision, re-capture in one locked lighting + ruler-in-picture calibration frame. Then tag `m2-done` and start M3+M4 (RTL). Board return 2026-10-22.
+**M3+M4 (hardware core) built and reviewed, 2026-10-19.** Full bit-exact simulation on the final RTL running. Next: **B2** (checklist `notes/B2_CHECKLIST.md`), board last day **2026-10-21**. AI layer, PC apps, optional PLC link come after the board is returned (full scope kept, only reordered; user decision 2026-10-19).
 
 ## Board time
 - Board: Digilent Zybo Z7-10 (borrowed). **Return date: Thursday 2026-10-22** (user, 2026-10-16). Board sessions must happen 16–21 Oct.
@@ -90,6 +90,13 @@ tin\gcc.exe`), nothing installed.
 
 ## 2026-10-19 update from the user
 - **Board last day is 2026-10-21** (was 22 Oct). Updated job list (82 postings, `KCCI Jobs/kcci_jobs_detailed.md`): new postings are mostly PLC/maintenance/panel design; open to him and relevant: 63 Samjin E&I embedded/firmware, 57 DH Lighting embedded SW, 77 DH Lighting circuit design, 75/66 mechanical; FPGA/ISP (81 Pixelplus) and PCB (58) are Vietnam quota only. Machine vision stays only in #8, #4 (and #35/#19). The user doubts the project is too specific and has little excitement for it; discussion of continue/pivot pending his decision.
+
+## M3+M4 hardware core (2026-10-19)
+- New RTL: `insp_pkg.sv`, `meas_core.sv` (S0 threshold -> E event -> G event generator with pad column + flush row -> F1 2-row line buffer + 3x3 columns -> F2 majority -> A1-A3 DSP products + 39/38-bit accumulators + bbox), `insp_pipeline.sv` (result banks, video delay 4 + overlay = 6 clocks video latency), `insp_overlay.sv` (window frame coloured by verdict, bbox, centre cross, binary view), `axil_insp.sv` (register map = docs/REGISTERS.md), new `top.sv` (one 81-bit cdc_bus_sync for all settings). M0 `pixel_pipeline`/`roi_overlay` moved to `rtl/reuse/`, `axil_stub` deleted.
+- Build (commit c45c811): **timing met, WNS +1.060 ns, WHS +0.033 ns**; 2,197 LUT (12.5 %), 2,655 FF, 0.5 BRAM, 3 DSP; no latches; only unused-port synth warnings.
+- Tests: `scripts/sim_unit.py` tb_cdc + tb_axil_insp PASS (mutations: wrong bank start, old counted pointer -> both fail as expected). `scripts/sim_meas.py`: first run on the pre-review RTL: case default 285/285 result lines written, early frames bit-exact (run stopped after the review changed the RTL); **full run on the final RTL (13 cases incl. alternating settings at sof, HBL=1, synthetic all-white max-value frames) in progress**.
+- RTL review (rtl-reviewer agent): 1 bug fixed (B1: AXI bank pointer could be one frame stale after a clk_acc reset -> pointer now = ~synchronized toggle, test added), risks fixed (R2 register init values, R3 flush cleared at sof), R1 handled in ARM (ignore 2 results after a window change), R4 (no set_max_delay on CDC data paths) documented in docs/CDC.md. Byte-strobe test made able to fail.
+- `py/still_test.py`: board-side bit-exact test with recorded frames shown as still images (also detects limited-range RGB). B2 checklist written.
 
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
