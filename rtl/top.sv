@@ -2,18 +2,20 @@
 // File   : top.sv
 // Project: Real-Time FPGA Vision Inspection Station
 // Board  : Digilent Zybo Z7-10
-// Purpose: Top level, M0 = HDMI pass-through (+ optional gray view and a placeholder window frame).
+// Purpose: Top level of the inspection station.
 //          Adapted from fpga-edge-ai-video (CNN, ROI buffer and result CDC removed).
 //
-//   Laptop --HDMI--> dvi2rgb --(RGB + sync, clk_pix 74.25 MHz)--> pixel_pipeline
+//   Laptop --HDMI--> dvi2rgb --(RGB + sync, clk_pix 74.25 MHz)--> insp_pipeline
 //                                                        --> rgb2dvi --HDMI--> TV
-//   No frame buffer: pixels stream through with a 3-clock pipeline delay.
+//   insp_pipeline: position -> measurement core (threshold, 3x3 filter, moment sums, box) ->
+//   result banks; video delayed 4 clocks and overlay drawn (6 clocks in total, no frame buffer).
+//   ARM (PS, ps_bd) <-> AXI-Lite (clk_acc 100 MHz) <-> axil_insp: settings, result sets, overlay.
 //   clk_ref (200 MHz) is made from the 125 MHz board clock for dvi2rgb (IDELAYCTRL + EDID).
-//   The ARM (PS) sits in block design ps_bd; here it only gives clk_acc and an AXI-Lite stub.
+//   Clock crossings: docs/CDC.md.
 //
 // LEDs:  led[0] blinks: clk_sys running   led[1] on: 200 MHz ref locked
 //        led[2] on: HDMI input locked     led[3] blinks: pixel clock running
-// Switches: sw[0] up: gray view   sw[1] up: hide the window frame
+// Switches: sw[0] up: binary view   sw[1] up: hide the overlay
 // =============================================================================
 `default_nettype none
 
@@ -132,29 +134,55 @@ module top (
     assign hdmi_rx_hpd = ref_locked;
 
     // -------------------------------------------------------------------------
-    // Window position (constant in M0; AXI-adjustable in M4) and pixel path
+    // Settings: clk_acc (AXI registers) -> clk_pix, ONE multi-bit req/ack crossing
+    // (all bits change together; docs/CDC.md). Before the ARM runs, clk_acc is
+    // stopped and the INIT values (= register reset values) are used.
     // -------------------------------------------------------------------------
-    localparam logic [10:0] WIN_X0 = 11'd520;
-    localparam logic [10:0] WIN_Y0 = 11'd240;
-
     logic clk_acc, rst_acc_n;
 
+    localparam int SET_W = $bits(insp_pkg::meas_cfg_t) + 1 + 1 + 3 + 11 + 11;
+    localparam logic [SET_W-1:0] SET_INIT = {insp_pkg::CFG_DEFAULT, 1'b1, 1'b0, 3'd0, 11'd0, 11'd0};
+
+    insp_pkg::meas_cfg_t acc_cfg, pix_cfg;
+    logic                acc_ovl_en, acc_bin_view, pix_ovl_en, pix_bin_view;
+    logic [2:0]          acc_verdict, pix_verdict;
+    logic [10:0]         acc_cx, acc_cy, pix_cx, pix_cy;
+
+    cdc_bus_sync #(.W(SET_W), .INIT(SET_INIT)) u_set_sync (
+        .clk_src (clk_acc),
+        .i_data  ({acc_cfg, acc_ovl_en, acc_bin_view, acc_verdict, acc_cx, acc_cy}),
+        .clk_dst (clk_pix),
+        .o_data  ({pix_cfg, pix_ovl_en, pix_bin_view, pix_verdict, pix_cx, pix_cy})
+    );
+
     // Switches are asynchronous to clk_pix -> 2-flop synchronizers (docs/CDC.md)
-    logic sw_gray_pix, sw_hide_pix;
-    cdc_sync_2ff u_sync_sw0 (.clk_dst(clk_pix), .d_async(sw[0]), .q_sync(sw_gray_pix));
+    //   sw[0] up: binary view ("what the FPGA sees")   sw[1] up: hide the overlay
+    logic sw_bin_pix, sw_hide_pix;
+    cdc_sync_2ff u_sync_sw0 (.clk_dst(clk_pix), .d_async(sw[0]), .q_sync(sw_bin_pix));
     cdc_sync_2ff u_sync_sw1 (.clk_dst(clk_pix), .d_async(sw[1]), .q_sync(sw_hide_pix));
 
-    video_pkg::video_t rx_vid, tx_vid;
+    // -------------------------------------------------------------------------
+    // Pixel clock domain: position, measurement core, result banks, overlay
+    // -------------------------------------------------------------------------
+    video_pkg::video_t   rx_vid, tx_vid;
+    insp_pkg::meas_res_t bank0, bank1;
+    logic                done_toggle, sof_toggle;
     assign rx_vid = '{data: rx_data, de: rx_de, hs: rx_hsync, vs: rx_vsync};
 
-    pixel_pipeline u_pixel_pipeline (
-        .clk_pix      (clk_pix),
-        .i_vid        (rx_vid),
-        .o_vid        (tx_vid),
-        .i_gray_en    (sw_gray_pix),
-        .i_overlay_en (~sw_hide_pix),
-        .i_win_x0     (WIN_X0),
-        .i_win_y0     (WIN_Y0)
+    insp_pipeline u_insp (
+        .clk_pix       (clk_pix),
+        .i_vid         (rx_vid),
+        .o_vid         (tx_vid),
+        .i_cfg         (pix_cfg),
+        .i_ovl_en      (pix_ovl_en && !sw_hide_pix),
+        .i_bin_view    (pix_bin_view || sw_bin_pix),
+        .i_verdict     (pix_verdict),
+        .i_cx          (pix_cx),
+        .i_cy          (pix_cy),
+        .o_bank0       (bank0),
+        .o_bank1       (bank1),
+        .o_done_toggle (done_toggle),
+        .o_sof_toggle  (sof_toggle)
     );
 
     logic [23:0] tx_data;
@@ -239,8 +267,8 @@ module top (
         .rst_acc_n           (rst_acc_n)
     );
 
-    // AXI-Lite placeholder (M0): all reads return the ID, writes are ignored.
-    axil_stub u_axil (
+    // AXI-Lite registers (clk_acc): settings, result sets, overlay (docs/REGISTERS.md)
+    axil_insp u_axil (
         .clk            (clk_acc),
         .rst_n          (rst_acc_n),
         .s_axi_awaddr   (axi_awaddr[15:0]),
@@ -259,7 +287,18 @@ module top (
         .s_axi_rdata    (axi_rdata),
         .s_axi_rresp    (axi_rresp),
         .s_axi_rvalid   (axi_rvalid),
-        .s_axi_rready   (axi_rready)
+        .s_axi_rready   (axi_rready),
+        .o_cfg          (acc_cfg),
+        .o_ovl_en       (acc_ovl_en),
+        .o_bin_view     (acc_bin_view),
+        .o_verdict      (acc_verdict),
+        .o_cx           (acc_cx),
+        .o_cy           (acc_cy),
+        .i_bank0        (bank0),
+        .i_bank1        (bank1),
+        .i_done_toggle  (done_toggle),
+        .i_sof_toggle   (sof_toggle),
+        .i_video_locked (pix_locked)
     );
 
     // -------------------------------------------------------------------------

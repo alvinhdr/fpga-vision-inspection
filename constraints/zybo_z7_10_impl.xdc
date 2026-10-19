@@ -10,10 +10,10 @@
 ## Three clock families from three different sources, so they are asynchronous:
 ##   1. board clock (sysclk -> clk_sys, 200 MHz ref clock)
 ##   2. HDMI clock (recovered pixel clock, 5x serial clocks)
-##   3. clk_fpga_0 = clk_acc, 100 MHz from the Zynq PS (AXI-Lite, later the CNN)
+##   3. clk_fpga_0 = clk_acc, 100 MHz from the Zynq PS (AXI-Lite registers)
 ## Every signal that crosses between them goes through a synchronizer
-## (Digilent IP internals, cdc_sync_2ff, cdc_pulse_sync, cdc_bus_sync, or the
-## dual-clock ROI block RAM). See docs/CDC.md.
+## (Digilent IP internals, cdc_sync_2ff, cdc_bus_sync) or is quasi-static data
+## read only while it cannot change (the result banks). See docs/CDC.md.
 ## =============================================================================
 set_clock_groups -asynchronous \
     -group [get_clocks -include_generated_clocks -of_objects [get_ports sysclk]] \

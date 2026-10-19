@@ -1,9 +1,9 @@
-# REGISTERS — AXI4-Lite register map (PROPOSED, written before the RTL in M4)
+# REGISTERS — AXI4-Lite register map (implemented in `rtl/axil_insp.sv`, M4)
 
 Base address `0x43C0_0000` (64 KB window, set in `scripts/build_hw.tcl`). All registers are 32 bits, word
 aligned, accessed by the ARM (`sw/common/insp_regs.h` has the same list). Clock domain of the registers: `clk_acc`
 (100 MHz). Anything that the pixel pipeline uses crosses to `clk_pix` (74.25 MHz) as described in the last section.
-This is a proposal: M4 may change it, but only together with `insp_regs.h`, this file and the testbench.
+Change it only together with `insp_regs.h`, this file and `tb/tb_axil_insp.sv`.
 
 ## Control and settings (RW)
 
@@ -41,7 +41,7 @@ take effect at the start of the next frame, never in the middle of one.
 | 0x060 | `R_SXY_HI` | [5:0] ΣU·V, bits 37..32 |
 | 0x064 | `R_BBOX_U` | [10:0] UMIN · [26:16] UMAX |
 | 0x068 | `R_BBOX_V` | [10:0] VMIN · [26:16] VMAX |
-| 0x06C | `R_FRAME_ID` | `FRAME_CNT` value of this set (to check that the set did not change while it was read) |
+| 0x06C | `R_FRAME_ID` | same value as `FRAME_CNT` (the AXI-side bank pointer and the counter change in the same clock) |
 
 **How the ARM reads it safely** (no locking is needed): a bank stays unchanged for one whole video frame (16.7 ms)
 after it becomes ready; reading 14 words takes a few microseconds.

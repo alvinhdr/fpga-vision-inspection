@@ -19,19 +19,11 @@ VIVADO_BIN = os.environ.get("VIVADO_BIN", r"C:\Xilinx\2025.1\Vivado\bin")
 
 TESTS = {
     "tb_cdc":       ["rtl/cdc_bus_sync.sv", "rtl/cdc_pulse_sync.sv", "tb/tb_cdc.sv"],
-    "tb_axil_regs": ["rtl/ram_tdp.sv", "rtl/axil_regs.sv", "tb/tb_axil_regs.sv"],
-    "tb_cnn_units": ["rtl/cnn_pkg.sv", "rtl/cnn_mac_array.sv", "rtl/cnn_requant.sv", "rtl/cnn_argmax.sv",
-                     "tb/tb_cnn_units.sv"],
-    "tb_ai_core":   ["ml/export/cnn_params_pkg.sv", "rtl/cnn_pkg.sv", "rtl/ram_tdp.sv", "rtl/cnn_mac_array.sv",
-                     "rtl/cnn_requant.sv", "rtl/cnn_argmax.sv", "rtl/cnn_controller.sv", "rtl/cnn_top.sv",
-                     "rtl/axil_regs.sv", "rtl/ai_core.sv", "tb/tb_ai_core.sv"],
+    "tb_axil_insp": ["rtl/insp_pkg.sv", "rtl/axil_insp.sv", "tb/tb_axil_insp.sv"],
 }
 
 # Data files copied into the simulation folder ($readmemh reads them from there)
-DATA = {
-    "tb_ai_core": ["ml/export/wrom_p8.mem", "ml/export/brom_p8.mem", "ml/export/vec_full_input.mem",
-                   "ml/export/vec_full_acc.mem", "ml/export/vec_full_result.mem"],
-}
+DATA = {}
 
 
 def run(cmd, cwd, log):
