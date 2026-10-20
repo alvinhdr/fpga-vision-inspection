@@ -78,7 +78,17 @@ Not run on the board. The learned model is not better than a tolerance rule on t
 | Cross-language check | C# replay of `data/runs/20261020_final.csv`: 7,664 lines, 22 parts, PASS 14, FAIL 8, yield 63.6 % = Python `py/viewer.py --selftest` |
 | Live mode and "send to board" | **not tested on the board** (the board was returned first); the command layer is tested with a fake port |
 
-## 8. Limits (honest list)
+## 8. PLC link (software, `py/test_plc.py`, `docs/PLC.md`)
+| What | Result |
+|---|---|
+| Modbus TCP written by hand | 7 byte-exact frame checks and a client/server roundtrip pass; the independent library `pymodbus` reads registers and coils and writes a register on the server |
+| Whole chain on the recorded board results | gateway: 22 parts, PASS 14, FAIL 8 (same as Python viewer and C# app); the simulated PLC's own counters 14 / 8; 8 reject pulses = 1 per FAIL part; line stop raised; RESET coil clears the counters |
+| PLC logic alone | isolated FAILs never trigger the line stop; 3 in a row trigger it on the third; acknowledge clears it; reject pulse about 500 ms; comm fault when SYSTEM_OK = 0. A planted bug (stop after 2) is caught by 2 tests |
+| Total | 30 / 30 checks pass |
+
+Not done: a real PLC or OpenPLC, a hardware output pin on the FPGA, a live run with the board.
+
+## 9. Limits (honest list)
 - The rule was tuned on an earlier recording of the **same parts**, then tested on a new recording with new placements: not a blind test.
 - Accuracy is limited by the ruler (+-1 mm) and the calibration (+-2 %); no caliper was available. "Accuracy vs caliper on 10 parts" from the plan was **not** done.
 - Shiny parts change their measured length with their angle (glare): long parts vary by 5-7 mm.

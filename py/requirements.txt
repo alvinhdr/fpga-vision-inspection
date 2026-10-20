@@ -5,6 +5,7 @@ narwhals==2.27.1
 numpy==2.5.4
 opencv-python==5.0.0.93
 pillow==12.3.0
+pymodbus==3.16.1
 pyserial==3.5
 scikit-learn==1.9.1
 scipy==1.18.1

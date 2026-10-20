@@ -43,7 +43,12 @@ The split is deliberate: the FPGA does every per-pixel operation (55 million pix
 
 ![Operator app replaying the recorded board results](docs/images/app-replay.png)
 
-`pc/InspectionApp` shows the live result of the board over the serial port, or **replays a recorded CSV** (no board needed): a big PASS/FAIL tile, the numbers, a count of parts and the yield, a trend chart of the length with the tolerance band, a list of FAIL events, and a CSV export. A Python version with the same logic is `py/viewer.py`. 17 xUnit tests cover the line parser, the part counting, the view model (with a fake serial port) and a replay of the real evidence, which must give exactly the same counts as the Python version (22 parts, PASS 14, FAIL 8). Build and test: `cd pc; dotnet test`. Start a replay: `InspectionApp.exe --replay ..\datauns61020_final.csv --speed 40`. Sending settings to the live board (command `n`) could only be tested with a fake port, because the board was returned before the app was finished.
+`pc/InspectionApp` shows the live result of the board over the serial port, or **replays a recorded CSV** (no board needed): a big PASS/FAIL tile, the numbers, a count of parts and the yield, a trend chart of the length with the tolerance band, a list of FAIL events, and a CSV export. A Python version with the same logic is `py/viewer.py`. 17 xUnit tests cover the line parser, the part counting, the view model (with a fake serial port) and a replay of the real evidence, which must give exactly the same counts as the Python version (22 parts, PASS 14, FAIL 8). Build and test: `cd pc; dotnet test`. Start a replay: `InspectionApp.exe --replay ..\data
+uns61020_final.csv --speed 40`. Sending settings to the live board (command `n`) could only be tested with a fake port, because the board was returned before the app was finished.
+
+## PLC link (software)
+
+[docs/PLC.md](docs/PLC.md): a vision gateway publishes the results as **Modbus TCP** registers (counts, last verdict, length, yield, heartbeat), and a simulated PLC scan loop reads them, counts good and bad parts, pulses a reject output on every FAIL and latches a line-stop alarm after 3 FAIL parts in a row. The Modbus code is written by hand and checked against the independent `pymodbus` library; 30 checks run the whole chain on the real recorded board results (22 parts, PASS 14, FAIL 8, one reject pulse per FAIL, the counters of the simulated PLC equal those of the gateway). It is a **simulation**: no real PLC or OpenPLC was used, and it was not run with the live board.
 
 ## AI layer
 
@@ -72,7 +77,7 @@ The measuring core is classic on purpose (exact numbers you can check with a rul
 | `rtl/` | SystemVerilog: measurement core, banks, overlay, AXI-Lite registers, top level (`rtl/reuse/` holds unused modules from the previous project) |
 | `tb/`, `scripts/sim_*.py` | self-checking testbenches and the bit-exact simulation against the golden model |
 | `sw/inspect/`, `sw/common/` | ARM program and register map; `sw/test` the PC test of the C maths |
-| `py/` | golden model, OpenCV check, UART logger, evidence recording and analysis tools, Python viewer with replay, AI evaluation |
+| `py/` | golden model, OpenCV check, UART logger, evidence recording and analysis tools, Python viewer with replay, AI evaluation, Modbus TCP gateway and simulated PLC |
 | `pc/` | C# WPF operator app (live serial or replay, PASS/FAIL tile, yield, trend chart with tolerance band, FAIL log, CSV export) with 17 xUnit tests |
 | `docs/` | `MEASUREMENT.md` (spec), `REGISTERS.md`, `PROTOCOL.md`, `CDC.md`, `RESULTS.md`, `LEARNING.md`, `reports/` (timing, utilization, power) |
 | `data/` | a few photos and video stills; the 285 + 168 recorded frames and the 87 MB demo video stay outside git |
