@@ -70,7 +70,7 @@ Each milestone lists: goal · tasks · done when (evidence) · model/effort · w
 
 ### M0 — Project setup (no board)
 - Confirm with the user: repo name, GitHub repo (private), which parts and which measuring tool (ruler/caliper) they have, which phone.
-- `git init`, submodule, folder structure (the project instructions section 6), copy the reuse files (section 4), `.gitignore`, `notes/PROGRESS.md`, `docs/LEARNING.md`.
+- `git init`, submodule, folder structure (section 6 of the project instructions), copy the reuse files (section 4), `.gitignore`, `notes/PROGRESS.md`, `docs/LEARNING.md`.
 - Check tools still work: Vivado/Vitis 2025.1, Python venv (`numpy`, `opencv-python`, `pillow`, `pyserial`, `mss` for screen capture), git, gh.
 - **Done when:** repo pushed; a first `build_hw.tcl all` of the reused pass-through top runs and meets timing (no CNN), so the build flow is proven before any new RTL.
 - **Model:** first message `opus`/`high` (read the plan, ask questions, confirm scope); then `sonnet`/`medium` for the setup work.

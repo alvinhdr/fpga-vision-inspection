@@ -4,14 +4,14 @@ Goal: see the camera picture on the TV through the Zybo, with the green window f
 Needs: the M0 build (`build/inspect.bit`, timing met: WNS +1.163 ns). No ARM program needed.
 Length: 30–60 min. Record the start/end time in `notes/PROGRESS.md` (board hours used).
 
-## Before (the assistant has done this)
+## Before (prepared in advance)
 - [x] Bitstream built from commit `a7b905a` (tag `m0-done`), timing met.
 - [x] `py/capture_frames.py` ready (laptop webcam = camera 0 works).
 
 ## Setup you do (physical)
 1. Phone in the stand, looking straight DOWN at the table, about 12–20 cm above. The bolts will be only 50–100 pixels long, so closer is better.
 2. Black desk mat as background. Lamp from the SIDE, low, so the shiny bolts do not make big white spots. Try the lamp on the left, then on the right.
-3. Phone: start DroidCam (Wi-Fi mode or USB). Laptop: DroidCam Client (the assistant tells you how), or a browser with the address shown on the phone.
+3. Phone: start DroidCam (Wi-Fi mode or USB). Laptop: DroidCam Client (see the notes), or a browser with the address shown on the phone.
 4. Laptop display: **Duplicate**, **1280×720, 60 Hz**. Camera picture full screen. Do-not-disturb ON.
 5. Cables: laptop HDMI out → Zybo **HDMI RX** (J1). Zybo **HDMI TX** (J2) → TV. Board power jumper on USB, boot jumper on **JTAG**. USB cable to the laptop. Switches sw[0], sw[1] down.
 6. Power the board on.
@@ -34,4 +34,4 @@ Length: 30–60 min. Record the start/end time in `notes/PROGRESS.md` (board hou
 - If the picture is blurry or has a colour problem: photo + tell the assistant, do not fix by guessing.
 
 ## After
-the assistant writes: hours used, what worked, problems, in `notes/PROGRESS.md`.
+The assistant writes: hours used, what worked, problems, in `notes/PROGRESS.md`.
