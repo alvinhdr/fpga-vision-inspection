@@ -90,12 +90,14 @@ static uint32_t      skipped = 0, results = 0;
 static uint32_t      ignore_until = 0;
 
 /* Smoothing: the verdict uses the MEDIAN of the last SM_N valid length/width values, so one bad frame (a speck
- * of fluff, a flash on the metal) cannot flip PASS/FAIL. A frame that is not MEASURED clears the history; a
- * part needs SM_MIN valid frames (83 ms at 60 fps) before it gets a verdict. `g 0` switches smoothing off. */
+ * of fluff, a flash on the metal) cannot flip PASS/FAIL. A speck frame (NOISY) is skipped and the last median is kept (at most
+ * SM_MISS_MAX in a row); NOPART or EDGE clears the history. A part needs SM_MIN valid frames (83 ms at 60 fps) before it gets a verdict. `g 0` switches smoothing off. */
 #define SM_N   9
 #define SM_MIN 5
 static double  sm_L[SM_N], sm_W[SM_N];
-static int     sm_n = 0, sm_pos = 0, smooth_on = 1;
+static int     sm_n = 0, sm_pos = 0, sm_miss = 0, smooth_on = 1;
+#define SM_MISS_MAX 12      /* speck frames skipped in a row before the history is dropped */
+static double  sm_cx = 0.0, sm_cy = 0.0;
 
 static double median_n(const double *a, int n)
 {
@@ -210,17 +212,23 @@ int main(void)
         insp_geom_t g;
         insp_geometry(&r, &win, &cfg, &g);
         if (smooth_on) {
+            int held = 0;
             if (g.status == INSP_MEASURED) {
                 sm_L[sm_pos] = g.L_px; sm_W[sm_pos] = g.W_px;
                 sm_pos = (sm_pos + 1) % SM_N; if (sm_n < SM_N) sm_n++;
-                if (sm_n >= SM_MIN) {
-                    g.L_px = median_n(sm_L, sm_n); g.W_px = median_n(sm_W, sm_n);
-                    if (cfg.k_mm_per_px > 0.0) { g.L_mm = g.L_px * cfg.k_mm_per_px; g.W_mm = g.W_px * cfg.k_mm_per_px; }
-                } else {
-                    g.status = INSP_NOISY;                 /* still warming up: no verdict yet */
-                }
+                sm_miss = 0; sm_cx = g.cx; sm_cy = g.cy;
+            } else if (g.status == INSP_NOISY && sm_n >= SM_MIN && sm_miss < SM_MISS_MAX) {
+                sm_miss++; held = 1;                       /* a speck frame: skip it, keep the last median */
             } else {
-                sm_n = 0; sm_pos = 0;
+                sm_n = 0; sm_pos = 0; sm_miss = 0;         /* part gone, at the edge, or noise for too long */
+            }
+            if (sm_n >= SM_MIN && (g.status == INSP_MEASURED || held)) {
+                g.L_px = median_n(sm_L, sm_n); g.W_px = median_n(sm_W, sm_n);
+                if (held) { g.cx = sm_cx; g.cy = sm_cy; }
+                if (cfg.k_mm_per_px > 0.0) { g.L_mm = g.L_px * cfg.k_mm_per_px; g.W_mm = g.W_px * cfg.k_mm_per_px; }
+                g.status = INSP_MEASURED;
+            } else if (g.status == INSP_MEASURED) {
+                g.status = INSP_NOISY;                     /* still warming up: no verdict yet */
             }
         }
         unsigned v = insp_decide(&g, &cfg);
