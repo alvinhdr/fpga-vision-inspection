@@ -43,8 +43,7 @@ The split is deliberate: the FPGA does every per-pixel operation (55 million pix
 
 ![Operator app replaying the recorded board results](docs/images/app-replay.png)
 
-`pc/InspectionApp` shows the live result of the board over the serial port, or **replays a recorded CSV** (no board needed): a big PASS/FAIL tile, the numbers, a count of parts and the yield, a trend chart of the length with the tolerance band, a list of FAIL events, and a CSV export. A Python version with the same logic is `py/viewer.py`. 17 xUnit tests cover the line parser, the part counting, the view model (with a fake serial port) and a replay of the real evidence, which must give exactly the same counts as the Python version (22 parts, PASS 14, FAIL 8). Build and test: `cd pc; dotnet test`. Start a replay: `InspectionApp.exe --replay ..\data
-uns61020_final.csv --speed 40`. Sending settings to the live board (command `n`) could only be tested with a fake port, because the board was returned before the app was finished.
+`pc/InspectionApp` shows the live result of the board over the serial port, or **replays a recorded CSV** (no board needed): a big PASS/FAIL tile, the numbers, a count of parts and the yield, a trend chart of the length with the tolerance band, a list of FAIL events, and a CSV export. A Python version with the same logic is `py/viewer.py`. 17 xUnit tests cover the line parser, the part counting, the view model (with a fake serial port) and a replay of the real evidence, which must give exactly the same counts as the Python version (22 parts, PASS 14, FAIL 8). Build and test: `cd pc; dotnet test`. Start a replay: `InspectionApp.exe --replay ..\data\runs\20261020_final.csv --speed 40`. Sending settings to the live board (command `n`) could only be tested with a fake port, because the board was returned before the app was finished.
 
 ## PLC link (software)
 
