@@ -28,42 +28,41 @@ DIVIDER_Y = 298
 
 # id: (x, y, w, h, [(line, bold), ...], colors)
 NODES = {
-    "laptop": (20, 80, 110, 70, [("Laptop", True), ("HDMI 720p60", False)], YELLOW),
-    "hdmiin": (170, 80, 120, 70, [("HDMI in", True), ("(Digilent IP)", False)], BLUE),
-    "overlay": (330, 80, 190, 70, [("Overlay", True), ("green box, digit,", False), ("confidence bar", False)], BLUE),
-    "hdmiout": (560, 80, 120, 70, [("HDMI out", True), ("(Digilent IP)", False)], BLUE),
-    "tv": (740, 80, 110, 70, [("TV", True), ("picture + answer", False)], YELLOW),
-    "roi": (330, 200, 190, 80, [("ROI capture", True), ("224x224 box: gray, invert,", False), ("8x8 average -> 28x28", False)], BLUE),
-    "buf": (560, 200, 90, 80, [("ROI buffer", True), ("2 banks", False)], BLUE),
-    "cnn": (330, 360, 380, 100, [("CNN accelerator (hand-written SystemVerilog)", True),
-                                 ("conv 3x3 (8) + pool, conv 3x3 (16) + pool", False),
-                                 ("fully connected 400 -> 10, pick the biggest", False),
-                                 ("8 multiply-accumulate units: 240 microseconds", False)], GREEN),
-    "arm": (760, 360, 160, 100, [("ARM CPU + registers", True), ("settings, tests,", False), ("UART text output", False)], GRAY),
+    "cam": (10, 80, 100, 70, [("Phone camera", True), ("IP Webcam", False)], YELLOW),
+    "laptop": (135, 80, 105, 70, [("Laptop", True), ("full screen", False), ("720p60", False)], YELLOW),
+    "hdmiin": (265, 80, 100, 70, [("HDMI in", True), ("(Digilent IP)", False)], BLUE),
+    "overlay": (400, 80, 170, 70, [("Overlay", True), ("frame, box, cross,", False), ("binary view", False)], BLUE),
+    "hdmiout": (600, 80, 100, 70, [("HDMI out", True), ("(Digilent IP)", False)], BLUE),
+    "tv": (730, 80, 130, 70, [("Monitor", True), ("picture + result", False)], YELLOW),
+    "meas": (265, 200, 305, 80, [("Measurement core (SystemVerilog)", True), ("threshold, 3x3 filter,", False),
+                                 ("sums A, x, y, x2, y2, xy + bounding box", False)], GREEN),
+    "banks": (600, 200, 120, 80, [("Result banks", True), ("2 banks", False)], BLUE),
+    "arm": (265, 360, 305, 100, [("ARM CPU (C) + AXI-Lite registers", True), ("centre, angle, length, width,", False),
+                                 ("mm, PASS/FAIL, median of 9 frames", False)], GRAY),
+    "pc": (650, 360, 170, 100, [("PC (UART 115200)", True), ("logger, viewer,", False), ("replay", False)], GRAY),
 }
 
 # edges: id, source, target, exit (x, y), entry (x, y), waypoints, both_ends
 EDGES = [
-    ("e1", "laptop", "hdmiin", (1, 0.5), (0, 0.5), [], False),
-    ("e2", "hdmiin", "overlay", (1, 0.5), (0, 0.5), [], False),
-    ("e3", "overlay", "hdmiout", (1, 0.5), (0, 0.5), [], False),
-    ("e4", "hdmiout", "tv", (1, 0.5), (0, 0.5), [], False),
-    ("e5", "hdmiin", "roi", (0.5, 1), (0, 0.5), [(230, 240)], False),
-    ("e6", "roi", "buf", (1, 0.5), (0, 0.5), [], False),
-    ("e7", "buf", "cnn", (0.5, 1), (0.724, 0), [], False),
-    ("e8", "cnn", "arm", (1, 0.5), (0, 0.5), [], True),
-    ("e9", "cnn", "overlay", (0.987, 0), (0.5, 0), [(705, 50), (425, 50)], False),
+    ("e1", "cam", "laptop", (1, 0.5), (0, 0.5), [], False),
+    ("e2", "laptop", "hdmiin", (1, 0.5), (0, 0.5), [], False),
+    ("e3", "hdmiin", "overlay", (1, 0.5), (0, 0.5), [], False),
+    ("e4", "overlay", "hdmiout", (1, 0.5), (0, 0.5), [], False),
+    ("e5", "hdmiout", "tv", (1, 0.5), (0, 0.5), [], False),
+    ("e6", "hdmiin", "meas", (0.3, 1), (0.1, 0), [], False),
+    ("e7", "meas", "banks", (1, 0.5), (0, 0.5), [], False),
+    ("e8", "banks", "arm", (0.2, 1), (0.9, 0), [(624, 330), (539, 330)], False),
+    ("e9", "arm", "pc", (1, 0.5), (0, 0.5), [], True),
 ]
 
 # free text: id, x, y, text lines, anchor ("l" left, "c" centre, "r" right of x)
 LABELS = [
-    ("t1", 240, 214, ["same pixels"], "l"),
-    ("t2", 595, 320, ["crosses to the 100 MHz side", "(synchronized)"], "r"),
-    ("t3", 565, 34, ["answer (digit + confidence) is drawn on the next frame"], "c"),
-    ("t4", 425, 176, ["no frame buffer: a pixel leaves 94 ns after it came in, 60 frames/s"], "c"),
-    ("t5", 20, 482, ["Digilent Zybo Z7-10 (FPGA + ARM). Every clock crossing is synchronized, see docs/CDC.md"], "l"),
+    ("t2", 636, 318, ["crosses to the 100 MHz side", "(toggle + bank pointer)"], "l"),
+    ("t3", 485, 34, ["verdict colour + centre cross are written by the ARM, drawn on the next frame"], "c"),
+    ("t4", 620, 176, ["no frame buffer: a pixel leaves 81 ns after it came in, 60 frames/s"], "c"),
+    ("t5", 20, 482, ["Digilent Zybo Z7-10 (FPGA + ARM). Every clock crossing is listed in docs/CDC.md"], "l"),
     ("t6", 20, DIVIDER_Y - 11, ["video side: 74.25 MHz"], "l"),
-    ("t7", 20, DIVIDER_Y + 12, ["network side: 100 MHz"], "l"),
+    ("t7", 20, DIVIDER_Y + 12, ["ARM side: 100 MHz"], "l"),
 ]
 
 LEGEND = []          # no colour legend in the black-and-white version
