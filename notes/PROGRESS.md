@@ -1,11 +1,11 @@
 # PROGRESS
 
 ## Current milestone
-**M3+M4 (hardware core) built and reviewed, 2026-10-19.** Full bit-exact simulation on the final RTL DONE (13/13 cases). Next: **B2** (checklist `notes/B2_CHECKLIST.md`), board last day **2026-10-21**. AI layer, PC apps, optional PLC link come after the board is returned (full scope kept, only reordered; user decision 2026-10-19).
+**All board work done (2026-10-20 evening). Board returned 2026-10-21.** M0-M5 + B1 + B2 finished; MVP complete and measured. Remaining (NO board needed): Standard FPGA extras in simulation (Otsu/histogram, text overlay), AI layer, Python viewer, C# WPF app, PLC link (optional), docs/RESULTS.md, README, demo GIF, CV bullets, GitHub Release. Order and details in the next-step list below.
 
 ## Board time
 - Board: Digilent Zybo Z7-10 (borrowed). **Return date: Thursday 2026-10-22** (user, 2026-10-16). Board sessions must happen 16–21 Oct.
-- Board hours used: about 1.0 (B1: 10:15-11:13 on 2026-10-18, user's start time + system clock). Board sessions done: B1.
+- Board hours used: about 3.1 (B1 about 1.0 h on 2026-10-18; B2 about 2.1 h on 2026-10-20, 19:10-21:15 from commit times and the system clock). Board sessions done: B1, B2 (B3/B4 content was folded into B2). Board returned on 2026-10-21 (last day).
 - Old project's SD card (Edge AI BOOT.bin): user still has it somewhere, will look for it. Not needed for B1 if the M0 pass-through build is programmed over JTAG.
 
 ## Order of work (by milestone, no fixed days; board returns 2026-10-22)
@@ -116,7 +116,11 @@ tin\gcc.exe`), nothing installed.
   - **Frame rate**: 58,605 video frames seen, 58,604 results, **skipped = 0** (ARM counter since program start, about 16 min at 60 fps); a dedicated 60 s test was not possible because evidence.py held the serial port. Video latency by design: 6 pixel clocks = 81 ns (pipeline depth, not measured).
   - Empty mat: 301 of 363 lines NOPART; the rest are the first lines after pressing Enter (see check).
 - Rule now on the board: T=130, k=0.1728 mm/px, length 11.3 +- 1.6 mm, width 1.3 +- 0.7 mm.
-- Still to do in B2: s2 capture, ruler calibration, live PASS/FAIL, evidence logs, photos/video, frame-rate test.
+- **60 s frame-rate test (board, results line off):** 3,602 video frames and 3,602 results in 60.03 s = **60.003 fps, 0 skipped.** Hardware vs golden: 20/20 still frames bit-exact on the board.
+- **Demo material (`data/photos/b2/`):** 3 photos + 4 video stills (green PASS, red FAIL long/short part, empty white frame, in git) + 87 MB demo video `b2_demo_pass_fail.mp4` (portrait 1080x1920, 40.6 s, green/red/cyan box visible; NOT in git, back it up outside the repo, upload to YouTube later).
+- **Saved for the release without the board:** `artifacts/` (git-ignored): inspect.bit, inspect.xsa, inspect.elf, ps7_init.tcl, **BOOT.bin built (2.2 MB; NOT tested: no SD card was available)**. Reports (timing, utilization, power, CDC, DRC) in `docs/reports/`.
+- Not measured / limits to state in RESULTS: no SD-card boot test; latency only by design (6 clocks = 81 ns); accuracy limited by ruler +-1 mm and calibration +-2 %; rule tuned on the same parts (in-sample); one camera/lamp setup; no multi-part test.
+- Done in B2 (was: still to do): s2 capture, ruler calibration, live PASS/FAIL, evidence logs, photos/video, frame-rate test.
 
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).

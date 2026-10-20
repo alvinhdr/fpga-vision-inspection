@@ -64,3 +64,6 @@ data/runs/*.mp4
 *.mp4
 *.avi
 .venv/
+
+# Local backups of build outputs (bitstream, XSA, ELF) for the final GitHub release
+artifacts/
