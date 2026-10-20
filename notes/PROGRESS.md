@@ -98,6 +98,11 @@ tin\gcc.exe`), nothing installed.
 - RTL review (rtl-reviewer agent): 1 bug fixed (B1: AXI bank pointer could be one frame stale after a clk_acc reset -> pointer now = ~synchronized toggle, test added), risks fixed (R2 register init values, R3 flush cleared at sof), R1 handled in ARM (ignore 2 results after a window change), R4 (no set_max_delay on CDC data paths) documented in docs/CDC.md. Byte-strobe test made able to fail.
 - `py/still_test.py`: board-side bit-exact test with recorded frames shown as still images (also detects limited-range RGB). B2 checklist written.
 
+## B2 log (2026-10-20, board session 2, in progress)
+- Board serial port is **COM11** (not COM16/17 this time). Program: `xsdb scripts/program.tcl all inspect` -> ID 0x1A570001, results every frame, skipped=0, video locked (first 739 frames).
+- **Still test on the real board: 20/20 frames bit-exact vs golden** (`py/still_test.py COM11 --n 20`, frames from s1 shown full screen on the board's 1280x720 screen, 5 consecutive results each, A exact, cx/cy/L/W within rounding). Proves: full-range RGB reaches the FPGA (no limited-range problem), filter + sums + banks + AXI read are correct on hardware.
+- Still to do in B2: s2 capture, ruler calibration, live PASS/FAIL, evidence logs, photos/video, frame-rate test.
+
 ## Open problems
 - Accuracy reference: a 1 mm ruler is coarse. Plan: measure 10 identical parts in a row and divide by 10; put the ruler in the camera view for calibration. A cheap digital caliper would make the accuracy result stronger (user to decide).
 - Warm lamp + shiny metal parts may give reflections; test in M1 before choosing parts.
