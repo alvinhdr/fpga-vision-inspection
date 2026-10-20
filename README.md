@@ -4,6 +4,8 @@ A camera looks at a small metal part on a black mat. The live video goes over HD
 
 ![The monitor: empty mat (white frame), a good bolt (green), a wrong part (red)](docs/images/demo.gif)
 
+**[Watch the full 40 s demo on YouTube](https://youtube.com/shorts/Nl3dO_h1oiE)**
+
 *The monitor shown by the board: empty mat, a good bolt (PASS, green), then a wrong part (FAIL, red). Cyan box = bounding box, 20 s of a 40 s recording.*
 
 ## Results
