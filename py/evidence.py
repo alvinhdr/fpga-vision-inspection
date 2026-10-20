@@ -28,13 +28,16 @@ def main():
     ap.add_argument("port")
     ap.add_argument("--t", type=int, default=130)
     ap.add_argument("--k", type=float, default=0.1728)
-    ap.add_argument("--nom", type=float, default=11.6)
-    ap.add_argument("--tol", type=float, default=1.0)
-    ap.add_argument("--out", default=os.path.join("data", "runs", time.strftime("%Y%m%d") + "_evidence.csv"))
+    ap.add_argument("--nom", type=float, default=11.3)
+    ap.add_argument("--tol", type=float, default=1.6)
+    ap.add_argument("--wnom", type=float, default=1.3)
+    ap.add_argument("--wtol", type=float, default=0.7)
+    ap.add_argument("--tag", default="evidence")
+    ap.add_argument("--out", default=os.path.join("data", "runs", time.strftime("%Y%m%d") + "_" + "final.csv"))
     args = ap.parse_args()
     import serial
     ser = serial.Serial(args.port, 115200, timeout=0.2)
-    for c in (f"t {args.t}", f"c {args.k}", f"n {args.nom} {args.tol}", "o 1", "m 1"):
+    for c in (f"t {args.t}", f"c {args.k}", f"n {args.nom} {args.tol}", f"v {args.wnom} {args.wtol}", "g 1", "o 1", "m 1"):
         ser.write((c + "\r\n").encode())
         time.sleep(0.15)
     os.makedirs(os.path.dirname(args.out), exist_ok=True)

@@ -14,6 +14,7 @@
  *   m 0|1      result lines off/on     t <0..255> threshold        p 0|1 polarity (1 = bright part)
  *   f 0|1      3x3 filter              o 0|1      overlay on the TV  b 0|1 binary view
  *   w x0 y0 W H  inspection window     n <mm> <tol> nominal length and tolerance (mm)
+ *   v <mm> <tol> nominal width and tolerance (0 = width not checked)   g 0|1  median of 9 frames off/on (default on)
  *   k <mm>     calibrate: the part now in the window is <mm> long (needs a MEASURED frame)
  *   c <mm/px>  set the calibration directly (e.g. c 0.137)
  *   z          reset the skipped-frame counter
@@ -88,6 +89,22 @@ static uint32_t      skipped = 0, results = 0;
  * (old position, new size). Results are ignored until two new result sets have passed. */
 static uint32_t      ignore_until = 0;
 
+/* Smoothing: the verdict uses the MEDIAN of the last SM_N valid length/width values, so one bad frame (a speck
+ * of fluff, a flash on the metal) cannot flip PASS/FAIL. A frame that is not MEASURED clears the history; a
+ * part needs SM_MIN valid frames (83 ms at 60 fps) before it gets a verdict. `g 0` switches smoothing off. */
+#define SM_N   9
+#define SM_MIN 5
+static double  sm_L[SM_N], sm_W[SM_N];
+static int     sm_n = 0, sm_pos = 0, smooth_on = 1;
+
+static double median_n(const double *a, int n)
+{
+    double t[SM_N];
+    for (int i = 0; i < n; i++) t[i] = a[i];
+    for (int i = 1; i < n; i++) { double v = t[i]; int j = i - 1; while (j >= 0 && t[j] > v) { t[j + 1] = t[j]; j--; } t[j + 1] = v; }
+    return t[n / 2];
+}
+
 static void apply_window(void)
 {
     insp_wr(INSP_WIN_POS,  ((uint32_t)win.y0 << 16) | (uint32_t)win.x0);
@@ -102,11 +119,12 @@ static void set_ctrl_bit(uint32_t bit, int on)
 
 static void print_status(void)
 {
-    char k[16], ln[16], lt[16];
+    char k[16], ln[16], lt[16], wn[16], wt[16];
     fmt_fixed(k, cfg.k_mm_per_px, 4); fmt_fixed(ln, cfg.L_nom, 2); fmt_fixed(lt, cfg.L_tol, 2);
-    xil_printf("S,id=0x%08x,ctrl=0x%x,thresh=%u,win=%d %d %d %d,k_mm_px=%s,L_nom=%s,L_tol=%s,frames=%u,results=%u,skipped=%u,video=%u\r\n",
+    fmt_fixed(wn, cfg.W_nom, 2); fmt_fixed(wt, cfg.W_tol, 2);
+    xil_printf("S,id=0x%08x,ctrl=0x%x,thresh=%u,win=%d %d %d %d,k_mm_px=%s,L_nom=%s,L_tol=%s,W_nom=%s,W_tol=%s,smooth=%d,frames=%u,results=%u,skipped=%u,video=%u\r\n",
                insp_rd(INSP_ID), insp_rd(INSP_CTRL), insp_rd(INSP_THRESH) & 0xFFu,
-               win.x0, win.y0, win.w, win.h, k, ln, lt,
+               win.x0, win.y0, win.w, win.h, k, ln, lt, wn, wt, smooth_on,
                insp_rd(INSP_PIX_FRAMES), results, skipped, (insp_rd(INSP_STATUS) >> 1) & 1u);
 }
 
@@ -137,6 +155,8 @@ static void do_command(const char *line)
             break;
         }
         case 'n': cfg.L_nom = parse_double(&s); cfg.L_tol = parse_double(&s); break;
+        case 'v': cfg.W_nom = parse_double(&s); cfg.W_tol = parse_double(&s); break;       /* width check, tol 0 = off */
+        case 'g': smooth_on = (int)parse_double(&s) != 0; sm_n = 0; sm_pos = 0; break;
         case 'c': cfg.k_mm_per_px = parse_double(&s); break;
         case 'k': {
             double known = parse_double(&s);
@@ -189,6 +209,20 @@ int main(void)
 
         insp_geom_t g;
         insp_geometry(&r, &win, &cfg, &g);
+        if (smooth_on) {
+            if (g.status == INSP_MEASURED) {
+                sm_L[sm_pos] = g.L_px; sm_W[sm_pos] = g.W_px;
+                sm_pos = (sm_pos + 1) % SM_N; if (sm_n < SM_N) sm_n++;
+                if (sm_n >= SM_MIN) {
+                    g.L_px = median_n(sm_L, sm_n); g.W_px = median_n(sm_W, sm_n);
+                    if (cfg.k_mm_per_px > 0.0) { g.L_mm = g.L_px * cfg.k_mm_per_px; g.W_mm = g.W_px * cfg.k_mm_per_px; }
+                } else {
+                    g.status = INSP_NOISY;                 /* still warming up: no verdict yet */
+                }
+            } else {
+                sm_n = 0; sm_pos = 0;
+            }
+        }
         unsigned v = insp_decide(&g, &cfg);
         if (g.status == INSP_MEASURED) last_geom = g;
 
