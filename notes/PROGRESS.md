@@ -101,6 +101,10 @@ tin\gcc.exe`), nothing installed.
 ## B2 log (2026-10-20, board session 2, in progress)
 - Board serial port is **COM11** (not COM16/17 this time). Program: `xsdb scripts/program.tcl all inspect` -> ID 0x1A570001, results every frame, skipped=0, video locked (first 739 frames).
 - **Still test on the real board: 20/20 frames bit-exact vs golden** (`py/still_test.py COM11 --n 20`, frames from s1 shown full screen on the board's 1280x720 screen, 5 consecutive results each, A exact, cx/cy/L/W within rounding). Proves: full-range RGB reaches the FPGA (no limited-range problem), filter + sums + banks + AXI read are correct on hardware.
+- **New phone** (IP Webcam at 192.168.1.38:8080, same app/steps; exposure lock via `/settings/exposure_lock?set=on`, unlock `set=off`; lamp dimmed to get mat mean gray about 32): s2 captured in `data/raw/s2` (168 frames: ruler 6, nothing 15, good bolts 81, bad_a..d 15 each), brightness steady 31.8-34.5 over the whole session. Empty-window worst A at T=120 with filter: 4 px.
+- **Calibration (ruler in picture, same setup):** digits 2..9 cm span about 412 px -> 58.9 px/cm -> 0.1698 mm/px on the ruler plane; x1.018 for the ruler thickness (about 3.5 mm above the mat at about 20 cm) -> **0.1728 mm/px** (uncertainty about 2 %; the mm tick lines were not usable, mat texture shows through the translucent ruler).
+- **Offline measurement s2 (T=120, filter on, median over frames):** good bolt L 67.7 px = **11.7 mm** (MAD 2.3 px; user's rough guess was 10 mm), W 9.2 px; bad_a 192.5 px = 33.3 mm; bad_b 141.5 = 24.5 mm; bad_c 95.5 = 16.5 mm; bad_d 78.1 px = 13.5 mm (W 17 px, much wider than the good bolt's 9). User ruler estimates: a ~30+, b ~25, c ~15, d ~13 -> agreement within 1.5 mm. 14 of 81 good-bolt frames and a few bad ones come out NOISY (far specks, box ratio > 1.5): to be checked live with different T.
+- ARM configured for the live test: `t 120`, `c 0.1728`, `n 11.7 1.2` (nominal 11.7 mm, tolerance 1.2 mm).
 - Still to do in B2: s2 capture, ruler calibration, live PASS/FAIL, evidence logs, photos/video, frame-rate test.
 
 ## Open problems
