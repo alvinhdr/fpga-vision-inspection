@@ -72,9 +72,3 @@ artifacts/
 pc/**/bin/
 pc/**/obj/
 .vs/
-
-# local assistant files (not published)
-the project instructions
-.assistant/
-START_HERE.md
-notes/HANDOVER.md
