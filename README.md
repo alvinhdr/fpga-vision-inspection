@@ -15,8 +15,8 @@ Every number was measured. [docs/RESULTS.md](docs/RESULTS.md) says how, and list
 | Frame rate | 3,602 frames and 3,602 results in 60 s = **60.003 fps, 0 skipped** |
 | Delay through the board | 6 pixel clocks = 81 ns (by design) |
 | Hardware vs Python model | **20 / 20 recorded frames bit-exact on the real board**; 13 / 13 simulation cases bit-exact (285 + 285 real frames, edge cases, maximum-value frames) |
-| Repeatability (bolt not touched, 3 positions, about 530 results each) | length std **0.056 to 0.073 mm** |
-| PASS/FAIL (5 good bolts, 4 other part types, 3 placements each) | good: **15 / 15 PASS**. bad: **11 / 12 FAIL**, none wrongly passed |
+| Repeatability (bolt not touched, 3 positions, about 530 results each) | length std **0.057 to 0.073 mm** |
+| PASS/FAIL (5 good bolts, 4 other part types, 3 placements each) | good: **15 / 15 PASS**. bad: **11 / 12 FAIL**, none wrongly passed. Per frame: good PASS 97.4 %, bad FAIL 92.8 % |
 | Size | 2,197 LUTs (12.5 %), 2,655 flip-flops, 0.5 block RAM, 3 DSPs on the small XC7Z010 |
 | Timing | met on all clocks: worst setup slack +1.060 ns, hold +0.033 ns |
 

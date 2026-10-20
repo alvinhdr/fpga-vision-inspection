@@ -3,23 +3,29 @@ analyze_evidence.py - numbers for docs/RESULTS.md from the evidence CSV written 
 Project: Real-Time FPGA Vision Inspection Station
   .\.venv\Scripts\python.exe py\analyze_evidence.py data\runs\20261020_final.csv
 Prints: repeatability (still bolt), per-placement accuracy and PASS/FAIL, confusion tables (placement and frame level),
-mean length per part, empty-mat result, frame continuity. The first quarter of every 3 s recording is dropped
-(hand leaving, smoothing warm-up); repeat recordings use the last 80 %.
+mean length per part, empty-mat result, frame continuity. The stale prefix of every recording is removed exactly, then the first 20 lines
+of every 3 s recording and the first 10 % of every 10 s recording.
 """
 import csv
 import collections
 import sys
 
+import os
 import numpy as np
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from uart_log import strip_stale_prefix  # noqa: E402
+
 rows = list(csv.DictReader(open(sys.argv[1])))
+rows, n_stale = strip_stale_prefix(rows)
+print(f"dropped {n_stale} stale lines (old output still buffered in the USB-serial chip at the start of each recording)")
 f = lambda r, k: float(r[k])
 print(f"{len(rows)} result lines; groups {dict(collections.Counter(r['group'] for r in rows))}")
 
 print("\nREPEATABILITY (bolt_good_01, not touched, 10 s each, last 80 %):")
 for pl in "123":
     R = [r for r in rows if r["group"] == "repeat" and r["placement"] == pl]
-    R = R[len(R) // 5:]
+    R = R[len(R) // 10:]
     M = [r for r in R if r["status"] == "MEASURED"]
     if not M:
         print(f" pos {pl}: no valid lines"); continue
@@ -36,7 +42,7 @@ for r in rows:
 print("\nPER PLACEMENT (first quarter dropped): part, median L, W, verdicts -> majority")
 conf = collections.Counter(); lc = collections.Counter(); per = collections.defaultdict(list); perW = collections.defaultdict(list)
 for (part, cls, pl), R in sorted(plc.items()):
-    R2 = R[len(R) // 4:]
+    R2 = R[20:]                      # then 20 more lines (0.33 s): hand leaving, 5-frame median warm-up
     vs = collections.Counter(r["verdict"] for r in R2)
     M = [r for r in R2 if r["status"] == "MEASURED"]
     L = np.median([f(r, "L_mm") for r in M]) if M else float("nan")
@@ -49,7 +55,7 @@ for (part, cls, pl), R in sorted(plc.items()):
 print("\nPLACEMENT level (majority verdict):")
 for c in ("good", "bad"):
     print("  %-5s PASS %2d  FAIL %2d  NONE %2d" % (c, conf[(c, "PASS")], conf[(c, "FAIL")], conf[(c, "NONE")] + conf[(c, "NOCAL")]))
-print("FRAME level:")
+print("FRAME level (stale prefix and first 20 lines dropped):")
 for c in ("good", "bad"):
     n = sum(v for (a, b), v in lc.items() if a == c)
     d = lc[(c, "PASS")] + lc[(c, "FAIL")]

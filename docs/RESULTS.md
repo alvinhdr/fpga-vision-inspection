@@ -43,19 +43,22 @@ Rule on the board: threshold T = 130, calibration 0.1728 mm per pixel, length 11
 
 | What | Result | Method |
 |---|---|---|
-| **Repeatability** (bolt not touched, 3 positions, about 530 results each) | length std **0.065 / 0.056 / 0.073 mm** (0.37 / 0.33 / 0.42 px), range 11.25-11.60 / 11.50-11.82 / 10.93-11.36 mm; centre std < 0.4 px; all results valid | `py/evidence.py` + `py/analyze_evidence.py`, first 20 % of each recording dropped |
+| **Repeatability** (bolt not touched, 3 positions, about 530 results each) | length std **0.064 / 0.057 / 0.073 mm** (0.37 / 0.33 / 0.42 px), range 11.25-11.60 / 11.50-11.82 / 10.93-11.36 mm; centre std < 0.42 px; all results valid | `py/evidence.py` + `py/analyze_evidence.py`; 540 / 540 / 599 lines after removing the stale prefix and the first 10 % |
 | **PASS/FAIL per placement** | good bolts **15 / 15 PASS**; bad parts **11 / 12 FAIL, 1 undecided, 0 wrongly passed** | majority verdict of 3 placements x 3 s per part (5 good bolts, 4 other part types) |
-| PASS/FAIL per frame | good: PASS 99.6 %, FAIL 0.0 %, undecided 0.4 % (n = 2,749); bad: FAIL 92.5 %, wrongly PASS 0.7 %, undecided 6.8 % (n = 2,207) | same data, first quarter of each recording dropped |
-| Length of the same part in different placements | good bolts 0.3-2.2 mm spread; bad_a 5.3 mm, bad_b 7.0 mm | per-part median of placements |
-| Empty mat | no part detected after the first second (the first 62 lines are the hand and part leaving) | 363 lines, `NOPART` for the rest |
+| PASS/FAIL per frame | good: PASS 97.4 %, wrongly FAIL 0.7 %, undecided 1.9 % (n = 2,722); bad: FAIL 92.8 %, wrongly PASS 0.7 %, undecided 6.5 % (n = 2,237) | same data; stale prefix of each recording removed exactly, then the first 20 lines (0.33 s: hand leaving, 5-frame warm-up of the median) |
+| Length of the same part in different placements | good bolts 0.3-2.2 mm spread; bad_a 5.2 mm, bad_b 7.0 mm | per-part median of placements |
+| Empty mat | **301 / 301 lines NOPART** (no false detection) | `py/evidence.py` empty-mat step, stale prefix removed |
 
 Calibration: ruler in the picture, same setup. Numbers 2 to 9 cm span 412 px = 58.9 px/cm = 0.1698 mm/px on the ruler plane, x 1.018 for the ruler thickness above the mat = 0.1728 mm/px, uncertainty about 2 %. The mm tick lines of the see-through ruler were not usable.
 
-Typical measured lengths (equivalent length, mm; ruler estimate in brackets): good bolts 11.06-11.47 (10-12), bad_d 13.22 (13), bad_c 16.27 (15), bad_b 20.87 (25), bad_a 27.34 (30+).
+Typical measured lengths (equivalent length, mm; ruler estimate in brackets): good bolts 11.06-11.49 (10-12), bad_d 13.22 (13), bad_c 16.24 (15), bad_b 20.84 (25), bad_a 27.39 (30+).
+
+**Correction found while checking (2026-10-20 night):** each evidence recording began with about 62 *stale* result lines: the USB-serial chip still held about 1 s of old output that the PC-side buffer flush cannot clear (visible as a jump of about 1,000 in the frame number after line 62). The first version of the analysis only dropped the first quarter of each recording, so some lines of the previous part leaked into the next recording and the frame-level rates looked better than they are (good PASS 99.6 % instead of 97.4 %). The analysis now removes the stale prefix exactly (`strip_stale_prefix` in `py/uart_log.py`). The ARM never stalled: 0 skipped results.
 
 ## 5. What the evidence runs taught us (all documented in `notes/PROGRESS.md`)
 - A fixed threshold fails when the camera brightness changes (mat gray 18 vs 50 in one session): exposure lock was needed.
 - The mouse pointer on the board's screen was counted as a part: keep it off the video.
+- A USB-serial chip keeps about 1 s of old data that a buffer flush does not clear: a logger must detect the frame-number jump and drop that prefix (found when the viewer counted twice as many parts as there were recordings).
 - Specks of mat fluff flicker in the live camera picture (28 % of raw frames at T 130): the 3x3 filter and a median over the last frames are needed; a first smoothing version that reset on every noisy frame left the board undecided 75 % of the time (found by live comparison, fixed).
 - The measured length depends on T (11.98 mm at T 120, 10.27 mm at T 160 for the same bolt): always calibrate at the T that is used.
 

@@ -35,6 +35,25 @@ def parse_line(line):
     return p[1:]
 
 
+def strip_stale_prefix(rows, max_prefix=120, min_jump=100):
+    """Evidence recordings (py/evidence.py) start with about 60 STALE lines: the USB-serial chip still holds about 1 s
+    of old output that the PC buffer flush cannot clear. They show up as a jump of the frame number
+    (>= min_jump) inside the first max_prefix lines of a recording. Returns the rows without them."""
+    out, groups = [], {}
+    for r in rows:
+        groups.setdefault((r.get("group"), r.get("part"), r.get("placement")), []).append(r)
+    dropped = 0
+    for R in groups.values():
+        cut = 0
+        for i in range(1, min(len(R), max_prefix)):
+            if int(R[i]["frame"]) - int(R[i - 1]["frame"]) >= min_jump:
+                cut = i
+                break
+        dropped += cut
+        out.extend(R[cut:])
+    return out, dropped
+
+
 def parse_test():
     good = "R,1234,MEASURED,325,640.2,350.1,72.98,10.45,-87.9,10.00,1.43,PASS"
     cases = {
