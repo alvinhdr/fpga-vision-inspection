@@ -4,7 +4,7 @@ Only measured numbers are used (source: `docs/RESULTS.md`). Do not add claims th
 
 ## CV bullets (pick 3-4)
 - Built a real-time machine-vision inspection station on a Zynq-7010 (Digilent Zybo Z7-10): hand-written SystemVerilog measures a part from live 720p60 camera video **without a frame buffer** (81 ns pipeline delay, **60.003 fps, 0 skipped results**), 12.5 % of the chip, timing met (WNS +1.06 ns).
-- Verified the streaming hardware **bit-exactly** against an integer Python model on 570 real camera frames and edge cases in simulation (13 / 13 cases), against OpenCV (285 / 285 frames), and **on the board** (20 / 20 frames); a code review found and I fixed a real clock-domain-crossing bug.
+- Verified the streaming hardware **bit-exactly** against an integer Python model on 285 real camera frames (at two thresholds) and edge cases in simulation (13 / 13 cases), against OpenCV (285 / 285 frames), and **on the board** (20 / 20 frames); a code review found and I fixed a real clock-domain-crossing bug.
 - Measured the system on the real board: repeatability **0.06-0.07 mm** (std, still part), good bolts **15 / 15 placements PASS**, wrong parts **11 / 12 FAIL** (none wrongly passed); found and fixed three practical problems (camera auto-exposure, a mouse pointer counted as a part, flickering specks).
 - Wrote bare-metal C for the ARM (moment-based centre / angle / length / width, calibration from a ruler, median filtering, PASS/FAIL), a text protocol over UART, and a Python operator view with replay of recorded logs. Tested a learned classifier on the measured features (honest result: no better than a tolerance rule).
 

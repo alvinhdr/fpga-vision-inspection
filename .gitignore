@@ -67,3 +67,8 @@ data/runs/*.mp4
 
 # Local backups of build outputs (bitstream, XSA, ELF) for the final GitHub release
 artifacts/
+
+# C# build output
+pc/**/bin/
+pc/**/obj/
+.vs/

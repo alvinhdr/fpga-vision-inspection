@@ -71,7 +71,14 @@ Typical measured lengths (equivalent length, mm; ruler estimate in brackets): go
 
 Not run on the board. The learned model is not better than a tolerance rule on this data.
 
-## 7. Limits (honest list)
+## 7. PC software
+| What | Result |
+|---|---|
+| C# WPF operator app | builds; 17 / 17 xUnit tests pass (`cd pc; dotnet test`) |
+| Cross-language check | C# replay of `data/runs/20261020_final.csv`: 7,664 lines, 22 parts, PASS 14, FAIL 8, yield 63.6 % = Python `py/viewer.py --selftest` |
+| Live mode and "send to board" | **not tested on the board** (the board was returned first); the command layer is tested with a fake port |
+
+## 8. Limits (honest list)
 - The rule was tuned on an earlier recording of the **same parts**, then tested on a new recording with new placements: not a blind test.
 - Accuracy is limited by the ruler (+-1 mm) and the calibration (+-2 %); no caliper was available. "Accuracy vs caliper on 10 parts" from the plan was **not** done.
 - Shiny parts change their measured length with their angle (glare): long parts vary by 5-7 mm.
