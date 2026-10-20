@@ -62,7 +62,16 @@ Typical measured lengths (equivalent length, mm; ruler estimate in brackets): go
 - Specks of mat fluff flicker in the live camera picture (28 % of raw frames at T 130): the 3x3 filter and a median over the last frames are needed; a first smoothing version that reset on every noisy frame left the board undecided 75 % of the time (found by live comparison, fixed).
 - The measured length depends on T (11.98 mm at T 120, 10.27 mm at T 160 for the same bolt): always calibrate at the T that is used.
 
-## 6. Limits (honest list)
+## 6. AI layer (offline, `py/ai_eval.py`, details in `docs/AI.md`)
+
+| What | Result |
+|---|---|
+| Part type recognition, 5 classes, leave-one-recording-out | decision tree depth 3: 86.2 % of frames, 25 / 30 recordings; k-NN 83.7 % |
+| Reject an unseen defect, trained on good bolts only | Mahalanobis one-class model: good accepted 98.7 %, bad rejected 100.0 %; tolerance rule fitted on the same good data: 99.5 % / 99.0 % |
+
+Not run on the board. The learned model is not better than a tolerance rule on this data.
+
+## 7. Limits (honest list)
 - The rule was tuned on an earlier recording of the **same parts**, then tested on a new recording with new placements: not a blind test.
 - Accuracy is limited by the ruler (+-1 mm) and the calibration (+-2 %); no caliper was available. "Accuracy vs caliper on 10 parts" from the plan was **not** done.
 - Shiny parts change their measured length with their angle (glare): long parts vary by 5-7 mm.

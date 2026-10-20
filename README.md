@@ -39,6 +39,10 @@ The split is deliberate: the FPGA does every per-pixel operation (55 million pix
 - **On the board**: recorded frames are shown on the HDMI input and every result line must equal the golden model (20 / 20).
 - **Review**: a read-only review of the RTL found one real bug (a bank pointer that could be one frame stale after a reset on the ARM side). It was fixed and a test was added that fails on the old design.
 
+## AI layer
+
+The measuring core is classic on purpose (exact numbers you can check with a ruler). On top of it, [docs/AI.md](docs/AI.md) tests a small learned model on the measured features, using only real board results. Telling the 5 part types apart (leave-one-recording-out): decision tree **86.2 %** of frames, 25 of 30 recordings. Rejecting defects it has **never seen**, trained on good bolts only: **98.7 %** of good frames accepted and **100 %** of bad frames rejected, but a plain tolerance rule fitted on the same data does almost as well (99.5 % / 99.0 %). So the AI is not better than the rule here; its benefit is that it needs no hand-set tolerance. Nothing from the AI layer was run on the board.
+
 ## What was hard
 
 - **Light.** The phone changes its brightness by itself, and a fixed threshold stops working (the same black mat was gray 18 in one session and gray 50 in another). The exposure is locked on the phone, and the measured length still depends on the threshold (11.98 mm at T=120 against 10.27 mm at T=160 for the same bolt), so the calibration is done at the threshold that is used.
