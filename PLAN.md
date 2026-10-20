@@ -40,7 +40,7 @@ Rules: never debug from zero on the board; simulate first. Every session starts 
 
 ## 4. What to reuse from the previous project
 
-Source: `C:\Users\User\Documents\the assistant Code\FPGA Edge AI Video` (same author, MIT). **Copy** files (do not link), keep the comment headers, update the project name, and note "adapted from fpga-edge-ai-video" in each header.
+Source: `<projects>\FPGA Edge AI Video` (same author, MIT). **Copy** files (do not link), keep the comment headers, update the project name, and note "adapted from fpga-edge-ai-video" in each header.
 
 | Previous file | Use here |
 |---|---|

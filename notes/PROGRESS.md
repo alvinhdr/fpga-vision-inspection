@@ -33,7 +33,7 @@ Otsu/histogram and 3x3 filter only if time is left; otherwise build later and pr
 
 ## What works
 - **M0 build (pass-through top, commit after 1a7dd4f):** full Vivado build in about 5 min. Timing met: WNS +1.163 ns, WHS +0.033 ns, 0 failing endpoints. Resources: 1,071 LUT (6.1 %), 1,210 FF (3.4 %), 0 BRAM, 0 DSP. Method: `build_hw.tcl all`, numbers from `build/reports/`. NOT yet tested on the board (B1 will do that).
-Nothing yet in this project. The previous project (`C:\Users\User\Documents\the assistant Code\FPGA Edge AI Video`) has a working, timing-closed HDMI pipeline to reuse (PLAN.md section 4). All 37 reuse files checked present on 2026-10-16; submodule at `f4613ff`.
+Nothing yet in this project. The previous project (`<projects>\FPGA Edge AI Video`) has a working, timing-closed HDMI pipeline to reuse (PLAN.md section 4). All 37 reuse files checked present on 2026-10-16; submodule at `f4613ff`.
 
 ## Decisions made
 - 2026-10-16: user wants AI in the project. Decision: the measuring core stays classic (exact numbers). An AI layer is added AFTER the MVP works, as an extra: a small model that classifies good/bad from the part's shape/features (trained on the recorded frames, runs on the PC or ARM first, compared with the plain tolerance rule). Exact design to be agreed with the user at the start of M2 (not before). Do not let it delay the board milestones.
